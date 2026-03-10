@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,                   // 开启严格模式
+    "jsx": "preserve",                // 如果是 React/Vue
+    "useDefineForClassFields": true,  // 配合 MobX 必须开启
+    "experimentalDecorators": true,   // 装饰器
+    "isolatedModules": true,          // Vite 必须要求
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"]
+}
