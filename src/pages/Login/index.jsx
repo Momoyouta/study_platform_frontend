@@ -5,7 +5,7 @@ import http from "@/http/http.js";
 const Login = observer(() => {
 
     const test = async () => {
-        await http.get('/test')
+        await http.get('/test',{params: {a:'1'}})
             .then(res => console.log(res))
             .catch(err => console.log(err));
     }

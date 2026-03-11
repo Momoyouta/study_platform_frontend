@@ -5,7 +5,7 @@ import router from '@/router/index.jsx';
 
 // 创建 axios 实例
 const instance = axios.create({
-    baseURL: import.meta.env.VITE_BASE_URL,
+    baseURL: '/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
