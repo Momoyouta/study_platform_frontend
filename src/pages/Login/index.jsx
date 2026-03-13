@@ -6,7 +6,16 @@ const Login = observer(() => {
 
     const test = async () => {
         await http.get('/test',{params: {a:'1'}})
-            .then(res => console.log(res))
+            .then(res => {
+                let a;
+                if(res.data) {
+                    console.log(res.data);
+                    a = res.data
+                }
+                console.log(a);
+                const { b } = a;
+                console.log(b);
+            })
             .catch(err => console.log(err));
     }
 
