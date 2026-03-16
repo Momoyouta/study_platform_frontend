@@ -1,0 +1,33 @@
+schema: spec-driven
+
+# 项目上下文
+# 在创建成品时向 AI 展示。
+# 包括技术栈、规范、风格指南、领域知识等。
+context: |
+  技术栈 (Tech Stack):
+  - 核心框架: React 19 (TypeScript & JavaScript 混合)
+  - 构建工具: Vite 7
+  - UI 组件库: Ant Design (Antd 6.x)
+  - 状态管理: MobX 6 + MobX-React-Lite
+  - 路由管理: React Router DOM 7
+  - 网络请求: Axios
+  - 样式处理: Less
+  - 工具库: Lodash, Moment.js
+
+  路由结构 (Routing Structure):
+  - / : 首页 (Home) - 对应 src/pages/Home/index.jsx
+  - /login : 登录页 (Login) - 对应 src/pages/Login/index.jsx
+
+  项目规范:
+  - 采用模块化开发，页面组件存放于 src/pages，通用组件存放于 src/components
+  - 使用 createBrowserRouter 进行路由管理，路由配置集中在 src/router/route.jsx
+  - 状态管理统一使用 MobX，存储在 src/store 目录下
+  - 样式变量定义在 src/theme/variables.less
+
+# 按成品规则 (可选)
+# 为特定成品添加自定义规则。
+rules:
+  proposal:
+    - 必须包含“非目标 (Non-goals)”部分
+  tasks:
+    - 
