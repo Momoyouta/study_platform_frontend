@@ -1,0 +1,140 @@
+.login-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background-color: #f0f2f5;
+    overflow: hidden;
+}
+
+.login-left {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e6f7ff;
+}
+
+.login-banner-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.login-bg-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(24, 144, 255, 0.8) 0%, rgba(0, 80, 179, 0.9) 100%);
+    z-index: 2;
+}
+
+.login-text-content {
+    position: relative;
+    z-index: 3;
+    color: #ffffff;
+    text-align: left;
+    max-width: 600px;
+    padding: 40px;
+    margin-left: -100px;
+    /* 为了让文字稍微偏左一点，增加设计感 */
+}
+
+/* 如果屏幕较小则取消偏移 */
+@media screen and (max-width: 1200px) {
+    .login-text-content {
+        margin-left: 0;
+    }
+}
+
+.login-text-content h1 {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-text-content h2 {
+    font-size: 2.8rem;
+    margin-bottom: 24px;
+    font-weight: 600;
+    color: #e6f7ff;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-text-content p {
+    font-size: 1.4rem;
+    color: #bae0ff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.login-right {
+    width: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    z-index: 4;
+}
+
+.login-form-wrapper {
+    width: 100%;
+    padding: 0 50px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.login-header h2 {
+    font-size: 2.2rem;
+    color: #262626;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.login-header p {
+    color: #8c8c8c;
+    font-size: 1.1rem;
+}
+
+.login-footer {
+    position: absolute;
+    bottom: 0;
+
+    p {
+        color: #8c8c8c;
+    }
+}
+
+.login-button {
+    height: 48px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.login-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.login-links a {
+    color: #1890ff;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.login-links a:hover {
+    color: #40a9ff;
+}

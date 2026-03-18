@@ -39,6 +39,11 @@ E:\毕设\study_platform_frontend\
 └── tsconfig.json           # TypeScript 配置
 ```
 
+## 规范
+
+- 接口返回数据默认结构为{code:number,msg:string,data:T}
+- 安装库必须使用pnpm
+
 ## 快速开始
 
 ### 1. 环境准备

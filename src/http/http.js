@@ -15,7 +15,7 @@ const instance = axios.create({
 // 请求拦截器：自动注入 token
 instance.interceptors.request.use(
     (config) => {
-        const token = '123'
+        const token = localStorage.getItem('access_token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
