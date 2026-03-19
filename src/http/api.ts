@@ -6,3 +6,7 @@ export const login = (account: string, pwd: string) => {
         pwd
     });
 }
+
+export const register = (data: any) => {
+    return http.post('/auth/register', data);
+}

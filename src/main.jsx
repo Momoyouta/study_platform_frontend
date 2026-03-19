@@ -25,6 +25,7 @@ const init = async () => {
       }
     } catch (error) {
       // 校验失败：清除 token
+      message.error('登录已过期，请重新登录');
       localStorage.removeItem('access_token');
       // 如果不在登录页则跳转到登录页
       if (!isLoginPage) {
