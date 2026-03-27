@@ -4,8 +4,15 @@ import viteLogo from '/vite.svg'
 import '../../App.css'
 import Store from "@/store/index.ts";
 import ProfileCard from "@/components/profileCard.tsx";
+import { Button } from 'antd';
+import http from "@/http/http.js";
 
 const Home = observer(() => {
+  const test = async () => {
+      await http.get('/user/roles/1')
+          .then(res => console.log(res))
+          .catch(err => console.log(err));
+  }
   return (
     <>
       <div>
@@ -29,6 +36,9 @@ const Home = observer(() => {
         Click on the Vite and React logos to learn more
       </p>
       <ProfileCard></ProfileCard>
+      <Button type="primary" onClick={test}>
+        test button
+      </Button>
     </>
   )
 })

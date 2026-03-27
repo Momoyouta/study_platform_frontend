@@ -1,0 +1,164 @@
+@import '../../theme/variables.less';
+
+.apply-school-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: @base-bg-color;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0; // Remove bottom padding so footer can sit flush if needed
+
+  .banner {
+    width: 100%;
+    // The image looks quite tall, covering upper part of screen
+    height: 480px; 
+    background-image: url('../../assets/login/school-register-banner.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 60px; // Adjust to move text down a bit from top
+
+    .banner-content {
+      text-align: center;
+      color: #fff;
+      
+      .banner-title {
+        font-size: 48px;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        
+        .banner-icon {
+          margin-right: 15px;
+          font-size: 42px;
+        }
+      }
+      
+      .banner-slogan {
+        font-size: 24px;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 2px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      }
+    }
+  }
+
+  .content-card {
+    position: relative; // Crucial for z-index
+    width: 1000px;
+    margin-top: -300px; // More overlap to match design
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); 
+    padding: 30px 100px;
+    z-index: 10; // Ensure it sits on top of the banner
+    transition: all 0.3s;
+    margin-bottom: 60px; // Space before footer
+
+    .card-title {
+      font-size: 36px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 50px;
+      text-align: left;
+    }
+
+    .form-wrapper {
+      .ant-form-item-label > label {
+        font-size: 14px;
+        color: #666;
+        height: auto;
+      }
+      
+      .ant-input {
+        text-align: left !important; // Force left align
+        height: 50px;
+        border-radius: 8px;
+        border-color: #e8e8e8;
+        
+        &:hover, &:focus {
+          border-color: #40a9ff;
+        }
+      }
+
+      // Ensure validation / hint text is left aligned (AntD uses .ant-form-item-explain)
+      .ant-form-item-explain,
+      .ant-form-item-explain-error,
+      .ant-form-item-explain .ant-form-item-explain-error {
+        text-align: left !important;
+        margin: 6px 0 0 0;
+        color: #ff4d4f;
+        font-size: 12px;
+      }
+
+      .upload-wrapper {
+        .ant-upload.ant-upload-select-picture-card {
+          width: 180px; // Match image
+          height: 140px; // Slightly rectangular in design? Or square. Let's stick closer to square or 4:3
+          border-radius: 12px;
+          border: 1px dashed #d9d9d9;
+          background: #fafafa;
+          margin-bottom: 0;
+          
+          &:hover {
+            border-color: #40a9ff;
+          }
+        }
+      }
+
+      .submit-btn {
+        width: 180px;
+        height: 60px;
+        font-size: 18px;
+        border-radius: 8px;
+        background-color: #abc4f4; 
+        border-color: #abc4f4;
+        color: #fff;
+        float: right;
+
+        &:hover {
+          background-color: darken(#abc4f4, 5%);
+          border-color: darken(#abc4f4, 5%);
+        }
+      }
+    }
+
+    .success-result {
+      text-align: center;
+      padding: 60px 0;
+      
+      .success-title {
+        font-size: 24px;
+        color: #333;
+        margin-top: 20px;
+      }
+      
+      .success-desc {
+        font-size: 16px;
+        color: #666;
+        margin-top: 10px;
+      }
+    }
+  }
+
+  // Sticky footer or just at the bottom
+  .footer-copyright {
+      width: 100%;
+      background-color: #dbe0f5; // Light purple footer bg from image
+      color: #666;
+      font-size: 12px;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: auto; // Push to bottom if using flex-col on container
+  }
+}
