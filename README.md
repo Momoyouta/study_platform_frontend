@@ -41,8 +41,9 @@ E:\毕设\study_platform_frontend\
 
 ## 规范
 
-- 接口返回数据默认结构为{code:number,msg:string,data:T}
+- 发送请求使用src/http/http.js的方法，api写在同级下的api.ts，接口返回数据默认结构为{code:number,msg:string,data:T}
 - 安装库必须使用pnpm
+- 全局less变量：src/theme/variables.less
 
 ## 快速开始
 

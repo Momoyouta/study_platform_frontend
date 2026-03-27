@@ -34,21 +34,21 @@ instance.interceptors.response.use(
     },
     (error) => {
         const status = error.response?.status;
-        const msg = error.response?.data?.message || '请求失败，请稍后重试';
+        const msg = error.response?.data?.msg;
 
         if (status === 401) {
             // 未授权：清除 token 并跳转到登录页
             Store.UserStore.clearToken();
             router.navigate('/login');
-            message.error('登录已过期，请重新登录');
+            message.error(msg || '登录已过期，请重新登录');
         } else if (status === 403) {
-            message.error('没有权限访问该资源');
+            message.error(msg || '没有权限访问该资源');
         } else if (status === 404) {
-            message.error('请求的资源不存在');
+            message.error(msg || '请求的资源不存在');
         } else if (status === 500) {
-            message.error('服务器内部错误，请稍后重试');
+            message.error(msg || '服务器内部错误，请稍后重试');
         } else {
-            message.error(msg);
+            message.error(msg || '请求失败，请稍后重试');
         }
 
         return Promise.reject(error);

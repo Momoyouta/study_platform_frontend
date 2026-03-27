@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom'
 import router from './router/index.jsx'
 import './index.css'
 import http from './http/http.js'
+import { message } from 'antd';
 const init = async () => {
   const token = localStorage.getItem('access_token');
   const isLoginPage = window.location.pathname === '/login';
