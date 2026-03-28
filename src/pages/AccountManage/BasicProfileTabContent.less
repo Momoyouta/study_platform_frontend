@@ -1,0 +1,66 @@
+.account-basic-tab {
+  padding: 10px 0 0;
+}
+
+.account-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 18px 28px;
+}
+
+.account-basic-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+}
+
+.account-basic-label {
+  width: 72px;
+  color: #5b6472;
+  font-size: 14px;
+}
+
+.account-basic-value {
+  color: #1f2530;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.account-basic-editor {
+  margin-top: 24px;
+  max-width: 720px;
+}
+
+.account-basic-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.account-basic-field {
+  flex: 1;
+  margin-bottom: 14px;
+}
+
+.account-basic-btn {
+  min-width: 116px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 900px) {
+  .account-basic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-basic-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-basic-btn {
+    width: 100%;
+    margin-bottom: 18px;
+  }
+}
