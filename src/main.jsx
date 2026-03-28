@@ -3,22 +3,36 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import router from './router/index.jsx'
 import './index.css'
-import http from './http/http.js'
+import { jwtAuth } from './http/api.ts'
+import Store from './store/index.ts'
 import { message } from 'antd';
 const init = async () => {
   const token = localStorage.getItem('access_token');
-  const isLoginPage = window.location.pathname === '/login';
+  const pathname = window.location.pathname;
+  const publicPaths = ['/login', '/applySchool'];
+  const isPublicPage = publicPaths.includes(pathname);
+  const isLoginPage = pathname === '/login';
 
   if (!token) {
-    // 无 token 且不在登录页，重定向到登录页
-    if (!isLoginPage) {
+    // 无 token 且不在公开页，重定向到登录页
+    if (!isPublicPage) {
       window.location.href = '/login';
       return;
     }
   } else {
     try {
       // 有 token，向后端校验
-      await http.post('/auth/jwtAuth', { accessToken: token });
+      const res = await jwtAuth(localStorage.getItem('access_token') || '');
+      if (!(res.code === 200 || res.code === 0)) {
+        throw new Error(res.msg || 'JWT 校验失败');
+      }
+
+      const valid = res?.data?.valid;
+      if (valid === false) {
+        throw new Error('JWT 已失效');
+      }
+
+      Store.UserStore.applyAuthResponse(res, { keepToken: true });
       // 校验成功：如果在登录页则跳转到首页
       if (isLoginPage) {
         window.location.href = '/';
@@ -27,9 +41,9 @@ const init = async () => {
     } catch (error) {
       // 校验失败：清除 token
       message.error('登录已过期，请重新登录');
-      localStorage.removeItem('access_token');
-      // 如果不在登录页则跳转到登录页
-      if (!isLoginPage) {
+      Store.UserStore.clearAuth();
+      // 如果不在公开页则跳转到登录页
+      if (!isPublicPage) {
         window.location.href = '/login';
         return;
       }

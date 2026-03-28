@@ -1,0 +1,102 @@
+import { makeAutoObservable } from "mobx";
+import { CurrentStudentInfoDto } from "@/type/user";
+
+const STUDENT_INFO_STORAGE_KEY = 'student_info';
+
+export class Student {
+    // 学号
+    studentNumber: string = '';
+    // 班级 ID
+    classId: string = '';
+    // 学院
+    college: string = '';
+    // 关联用户 ID
+    userId: string = '';
+    // 学校 ID
+    schoolId: string = '';
+    // 学校名称
+    schoolName: string = '';
+
+    // 初始化响应式能力并从本地缓存恢复数据
+    constructor() {
+        makeAutoObservable(this);
+        this.hydrateFromStorage();
+    }
+
+    // 是否已有学生档案
+    get hasProfile() {
+        return !!this.userId;
+    }
+
+    // 从 localStorage 恢复学生信息（兼容旧 snake_case 缓存）
+    hydrateFromStorage() {
+        const raw = localStorage.getItem(STUDENT_INFO_STORAGE_KEY);
+        if (!raw) {
+            this.clearFields();
+            return;
+        }
+
+        try {
+            const profile = JSON.parse(raw) || {};
+            this.studentNumber = profile.studentNumber || profile.student_number || '';
+            this.classId = profile.classId || profile.class_id || '';
+            this.college = profile.college || '';
+            this.userId = profile.userId || profile.user_id || '';
+            this.schoolId = profile.schoolId || profile.school_id || '';
+            this.schoolName = profile.schoolName || profile.school_name || '';
+        } catch (_error) {
+            this.clearFields();
+            localStorage.removeItem(STUDENT_INFO_STORAGE_KEY);
+        }
+    }
+
+    // 清空内存中的学生字段
+    private clearFields() {
+        this.studentNumber = '';
+        this.classId = '';
+        this.college = '';
+        this.userId = '';
+        this.schoolId = '';
+        this.schoolName = '';
+    }
+
+    // 将后端 DTO（snake_case）映射为 store 驼峰字段并持久化
+    setFromDto(dto: CurrentStudentInfoDto | null) {
+        if (!dto) {
+            this.clearProfile();
+            return;
+        }
+
+        this.studentNumber = dto.student_number || '';
+        this.classId = dto.class_id || '';
+        this.college = dto.college || '';
+        this.userId = dto.user_id || '';
+        this.schoolId = dto.school_id || '';
+        this.schoolName = dto.school_name || '';
+
+        localStorage.setItem(STUDENT_INFO_STORAGE_KEY, JSON.stringify({
+            studentNumber: this.studentNumber,
+            classId: this.classId,
+            college: this.college,
+            userId: this.userId,
+            schoolId: this.schoolId,
+            schoolName: this.schoolName,
+        }));
+    }
+
+    // 清空学生档案并删除本地缓存
+    clearProfile() {
+        this.clearFields();
+        localStorage.removeItem(STUDENT_INFO_STORAGE_KEY);
+    }
+
+    // 兼容旧调用方的方法别名
+    clearInfo() {
+        this.clearProfile();
+    }
+
+    // store 重置入口（仅清内存，不操作本地缓存）
+    reset() {
+        this.clearFields();
+    }
+}

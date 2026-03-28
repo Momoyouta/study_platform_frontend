@@ -11,6 +11,16 @@ export const register = (data: any) => {
     return http.post('/auth/register', data);
 }
 
+export const jwtAuth = (accessToken: string) => {
+    return http.post('/auth/jwtAuth', {
+        accessToken
+    });
+}
+
+export const getUserProfile = (id: string) => {
+    return http.get(`/user/profile/${id}`);
+}
+
 export const applySchool = (data: any) => {
     return http.post('/school/applySchool', data);
 }

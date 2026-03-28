@@ -44,7 +44,8 @@ E:\毕设\study_platform_frontend\
 - 发送请求使用src/http/http.js的方法，api写在同级下的api.ts，接口返回数据默认结构为{code:number,msg:string,data:T}
 - 安装库必须使用pnpm
 - 全局less变量：src/theme/variables.less
-
+- api调用使用.then链，非必要不使用try catch
+- 使用antd组件库
 ## 快速开始
 
 ### 1. 环境准备

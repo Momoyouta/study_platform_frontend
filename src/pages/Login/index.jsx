@@ -26,11 +26,7 @@ const Login = observer(() => {
 
             if (res.code === 200 || res.code === 0) {
                 message.success('登录成功');
-                Store.UserStore.setUserInfo(res.data);
-
-                if (res.token || res.data?.token) {
-                    Store.UserStore.setToken(res.token || res.data.token);
-                }
+                Store.UserStore.applyAuthResponse(res);
 
                 navigate('/');
             } else {
@@ -62,11 +58,7 @@ const Login = observer(() => {
 
             if (res.code === 200 || res.code === 0) {
                 message.success('注册成功');
-                if (res.data) Store.UserStore.setUserInfo(res.data);
-
-                if (res.token || res.data?.token) {
-                    Store.UserStore.setToken(res.token || res.data.token);
-                }
+                Store.UserStore.applyAuthResponse(res);
 
                 navigate('/');
             } else {
