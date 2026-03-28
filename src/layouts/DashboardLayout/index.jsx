@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
+import { observer } from 'mobx-react-lite';
 import { Avatar, Dropdown, Layout, Menu, message, Grid } from 'antd';
 import { AppstoreOutlined, BookOutlined, HomeOutlined, PieChartOutlined, UserOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Store, { resetStores } from '@/store/index.ts';
+import { buildFileViewUrl } from '@/utils/fileUrl.ts';
 import './index.less';
 
 const { Header, Sider, Content } = Layout;
@@ -15,11 +17,12 @@ const sideMenus = [
   { key: 'stats', label: '个人统计', path: '/stats', icon: <PieChartOutlined /> },
 ];
 
-const DashboardLayout = () => {
+const DashboardLayout = observer(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
   const userName = Store.UserStore.displayName || '未命名用户';
+  const userAvatarSrc = Store.UserStore.avatar ? buildFileViewUrl(Store.UserStore.avatar) || undefined : undefined;
 
   const activeKey = useMemo(() => {
     if (location.pathname === '/') return 'home';
@@ -64,7 +67,7 @@ const DashboardLayout = () => {
         <div className="school-title">学校名称</div>
         <Dropdown menu={profileMenu} trigger={['hover']} placement="bottomRight">
           <div className="user-anchor" role="button" tabIndex={0}>
-            <Avatar className="user-anchor-avatar" icon={<UserOutlined />} />
+            <Avatar className="user-anchor-avatar" src={userAvatarSrc} icon={<UserOutlined />} />
             <span className="user-anchor-name">{userName}</span>
           </div>
         </Dropdown>
@@ -81,7 +84,7 @@ const DashboardLayout = () => {
         >
           <div className="dashboard-sidebar-inner">
             <div className="sidebar-user-card">
-              <Avatar className="sidebar-user-avatar" size={64} icon={<UserOutlined />} />
+              <Avatar className="sidebar-user-avatar" size={64} src={userAvatarSrc} icon={<UserOutlined />} />
               {!collapsed && <div className="sidebar-user-name">{userName}</div>}
             </div>
 
@@ -105,6 +108,6 @@ const DashboardLayout = () => {
       </Layout>
     </Layout>
   );
-};
+});
 
 export default DashboardLayout;
