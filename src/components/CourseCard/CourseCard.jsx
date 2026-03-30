@@ -3,9 +3,10 @@ import './CourseCard.less';
 
 const { Text } = Typography;
 
-const CourseCard = ({ title, teacher }) => (
+const CourseCard = ({ title, teacher, onClick }) => (
   <Card className="course-card" 
     hoverable 
+    onClick={onClick}
     cover={
       <img className="course-card-media" src="src\assets\login\login-banner.png" alt="课程图片" />
     }

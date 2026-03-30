@@ -4,6 +4,11 @@
 }
 
 .dashboard-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   line-height: 66px;
   height: 66px;
   background: linear-gradient(90deg, #4b5eb5 0%, #4a5aac 50%, #44539e 100%);
@@ -44,10 +49,18 @@
 
 .dashboard-body {
   display: flex;
+  margin-top: 66px;
   min-height: calc(100vh - 66px);
 }
 
 .dashboard-sidebar {
+  position: fixed !important;
+  top: 66px;
+  left: 0;
+  bottom: 0;
+  z-index: 900;
+  height: calc(100vh - 66px);
+  overflow: hidden;
   background: #ffffff;
   border-right: 1px solid #e3e3e3;
 }
@@ -60,6 +73,21 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  .sidebar-footer {
+    display: flex;
+    padding: 5px 2px;
+    justify-content: center;
+    align-items: center;
+    .sidebar-goback {
+      font-size: 16px;
+      color: #ffffff;
+      cursor: pointer;
+      &:hover {
+        color: #a8b5ef;
+      }
+    }
+  }
 }
 
 .sidebar-user-card {
@@ -117,9 +145,27 @@
   color: currentcolor;
 }
 
+.sidebar-menu-switch {
+  animation: sidebarMenuSwitchIn 220ms ease-out;
+  transform-origin: top center;
+}
+
+@keyframes sidebarMenuSwitchIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .dashboard-main {
   flex: 1;
   margin: 18px 18px 18px 22px;
+  margin-left: calc(var(--dashboard-sider-width, 264px) + 22px);
   border-radius: 8px;
   background: #ffffff;
   border: 1px solid #e4e4e4;
@@ -132,8 +178,7 @@
   }
 
   .dashboard-sidebar {
-    position: sticky;
-    top: 0;
+    top: 66px;
     z-index: 9;
   }
 

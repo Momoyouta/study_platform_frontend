@@ -1,5 +1,7 @@
 import { lazy } from 'react';
 
+const CourseDetailPage = lazy(() => import('../pages/CourseDetail/index.jsx'));
+
 const routes = [
     {
         path: '/login',
@@ -20,6 +22,26 @@ const routes = [
             {
                 path: 'course',
                 component: lazy(() => import('../pages/Course/index.jsx')),
+            },
+            {
+                path: 'courseDetail',
+                component: CourseDetailPage,
+            },
+            {
+                path: 'courseDetail/chapter',
+                component: CourseDetailPage,
+            },
+            {
+                path: 'courseDetail/homework',
+                component: CourseDetailPage,
+            },
+            {
+                path: 'courseDetail/materials',
+                component: CourseDetailPage,
+            },
+            {
+                path: 'courseDetail/studyRecord',
+                component: CourseDetailPage,
             },
             {
                 path: 'resource-plaza',

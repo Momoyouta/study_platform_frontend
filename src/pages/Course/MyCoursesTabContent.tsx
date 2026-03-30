@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react';
 import { useMemo, useState } from 'react';
 import { Button, Empty, Flex, Grid, Input, List, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import CourseCard from '../../components/CourseCard/CourseCard.jsx';
 import './MyCoursesTabContent.less';
 
@@ -15,6 +16,16 @@ const mockCourses = [
 	{ id: 5, title: '课程名称', teacher: '教师名称' },
 	{ id: 6, title: '课程名称', teacher: '教师名称' },
 	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
+	{ id: 7, title: '课程名称', teacher: '教师名称' },
 ];
 
 type CourseItem = {
@@ -26,6 +37,7 @@ type CourseItem = {
 const MyCoursesTabContent = () => {
 	const [keyword, setKeyword] = useState('');
 	const screens = useBreakpoint();
+	const navigate = useNavigate();
 
 	const filteredCourses = useMemo(() => {
 		const normalized = keyword.trim();
@@ -47,6 +59,10 @@ const MyCoursesTabContent = () => {
 
 	const handleAddCourse = () => {
 		message.info('添加课程接口暂未实现，当前为占位交互。');
+	};
+
+	const handleOpenCourseDetail = (courseId: number) => {
+		navigate(`/courseDetail/?courseId=${courseId}`);
 	};
 
 	return (
@@ -77,7 +93,7 @@ const MyCoursesTabContent = () => {
 				}}
 				renderItem={(course) => (
 					<List.Item>
-						<CourseCard title={course.title} teacher={course.teacher} />
+						<CourseCard title={course.title} teacher={course.teacher} onClick={() => handleOpenCourseDetail(course.id)} />
 					</List.Item>
 				)}
 			/>
