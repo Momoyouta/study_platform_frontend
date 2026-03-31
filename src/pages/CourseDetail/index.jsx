@@ -1,5 +1,6 @@
 import { Card, Typography } from 'antd';
 import { useLocation } from 'react-router-dom';
+import Task from './Task';
 import './index.less';
 
 const { Paragraph, Title, Text } = Typography;
@@ -27,17 +28,21 @@ const CourseDetail = () => {
 
   return (
     <section className="course-detail-page">
-      <Card className="course-detail-card" bordered={false}>
-        <Title className="course-detail-title" level={3}>
-          {sectionLabel}
-        </Title>
-        <Paragraph className="course-detail-desc">
-          当前是课程详情的“{sectionLabel}”页面，后续可在这里接入真实业务模块。
-        </Paragraph>
-        <Text className="course-detail-course-id">
-          当前 courseId: {courseId || '未携带'}
-        </Text>
-      </Card>
+      {sectionKey === 'task' ? (
+        <Task courseId={courseId} />
+      ) : (
+        <Card className="course-detail-card" bordered={false}>
+          <Title className="course-detail-title" level={3}>
+            {sectionLabel}
+          </Title>
+          <Paragraph className="course-detail-desc">
+            当前是课程详情的“{sectionLabel}”页面，后续可在这里接入真实业务模块。
+          </Paragraph>
+          <Text className="course-detail-course-id">
+            当前 courseId: {courseId || '未携带'}
+          </Text>
+        </Card>
+      )}
     </section>
   );
 };

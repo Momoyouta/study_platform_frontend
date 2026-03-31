@@ -1,67 +1,19 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Upload, message } from 'antd';
-import { PlusOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
-import { applySchool, uploadImageTemp } from '../../http/api';
+import { useState } from 'react';
+import { Form, Input, Button, message } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
+import TempImageUpload from '@/components/TempImageUpload';
+import { applySchool } from '../../http/api';
 import './applySchool.less';
 
-const ApplySchool: React.FC = () => {
+const ApplySchool = () => {
     const [form] = Form.useForm();
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [evidenceImgUrl, setEvidenceImgUrl] = useState('');
     const [uploadingImage, setUploadingImage] = useState(false);
 
-    const beforeUpload = (file: File) => {
-        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-        if (!isJpgOrPng) {
-            message.error('只能上传 JPG/PNG 文件!');
-            return Upload.LIST_IGNORE;
-        }
-        const isLt5M = file.size / 1024 / 1024 < 5;
-        if (!isLt5M) {
-            message.error('文件必须小于 5MB!');
-            return Upload.LIST_IGNORE;
-        }
-        return true;
-    };
-
-    const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-        setFileList(newFileList);
-        if (newFileList.length === 0) {
-            setEvidenceImgUrl('');
-        }
-    };
-
-    const customUpload: UploadProps['customRequest'] = async (options) => {
-        const { file, onSuccess, onError } = options;
-
-        setUploadingImage(true);
-        try {
-            const uploadRes = await uploadImageTemp(file as File);
-            const uploadData: any = uploadRes;
-            const uploadedPath = uploadData?.data?.path ?? uploadData?.path ?? uploadData;
-
-            if (!uploadedPath) {
-                throw new Error('上传接口未返回图片路径');
-            }
-
-            setEvidenceImgUrl(String(uploadedPath));
-            message.success('图片上传成功');
-            onSuccess?.(uploadRes as any);
-        } catch (error) {
-            console.error('Image upload failed:', error);
-            setEvidenceImgUrl('');
-            message.error('图片上传失败，请重试');
-            onError?.(error as any);
-        } finally {
-            setUploadingImage(false);
-        }
-    };
-
     const onFinish = async (values: any) => {
-        if (fileList.length === 0 || !evidenceImgUrl) {
+        if (!evidenceImgUrl) {
             message.warning('请上传一张证明材料图片');
             return;
         }
@@ -86,12 +38,6 @@ const ApplySchool: React.FC = () => {
             setLoading(false);
         }
     };
-
-    const uploadButton = (
-        <div>
-            <PlusOutlined style={{ fontSize: 32, color: '#ccc' }} />
-        </div>
-    );
 
     return (
         <div className="apply-school-container">
@@ -157,18 +103,18 @@ const ApplySchool: React.FC = () => {
                                 name="evidence"
                                 className="upload-wrapper"
                             >
-                                <Upload
-                                    listType="picture-card"
-                                    fileList={fileList}
-                                    onPreview={() => {}}
-                                    onChange={handleChange}
-                                    customRequest={customUpload}
-                                    beforeUpload={beforeUpload}
-                                    maxCount={1}
-                                    showUploadList={{ showPreviewIcon: false, showRemoveIcon: true }}
-                                >
-                                    {fileList.length >= 1 ? null : uploadButton}
-                                </Upload>
+                                <TempImageUpload
+                                    variant="picture-card"
+                                    previewPath={evidenceImgUrl}
+                                    accept=".jpg,.jpeg,.png"
+                                    allowedMimeTypes={['image/jpeg', 'image/png']}
+                                    invalidTypeMessage="只能上传 JPG/PNG 文件!"
+                                    oversizeMessage="文件必须小于 5MB!"
+                                    onChange={(path) => {
+                                        setEvidenceImgUrl(path);
+                                    }}
+                                    onUploadingChange={setUploadingImage}
+                                />
                             </Form.Item>
 
                             <Form.Item style={{ marginBottom: 0 }}>

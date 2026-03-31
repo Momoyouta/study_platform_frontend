@@ -17,3 +17,7 @@ export const buildFileViewUrl = (path?: string) => {
 
     return `${normalizedBaseUrl}${normalizedPath}`;
 };
+
+export const toViewFileUrl = (path?: string) => {
+    return buildFileViewUrl(path);
+};

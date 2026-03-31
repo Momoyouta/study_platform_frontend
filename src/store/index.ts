@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import { User } from "./user";
 import { Student } from "./student";
 import { Teacher } from "./teacher";
+import { Course } from "./course";
 
 class RootStore {
     // 学生信息 store
@@ -10,12 +11,15 @@ class RootStore {
     TeacherStore: Teacher;
     // 认证与用户基础信息 store
     UserStore: User;
+    // 课程管理 store
+    CourseStore: Course;
 
     // 初始化所有 store，并注入跨 store 依赖
     constructor() {
         this.StudentStore = new Student();
         this.TeacherStore = new Teacher();
         this.UserStore = new User(this);
+        this.CourseStore = new Course();
     }
 }
 
