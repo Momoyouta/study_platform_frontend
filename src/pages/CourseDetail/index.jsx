@@ -2,6 +2,7 @@ import { Card, Typography } from 'antd';
 import { useLocation } from 'react-router-dom';
 import Task from './Task';
 import Chapter from './Chapter';
+import StudyRecord from './StudyRecord';
 import './index.less';
 
 const { Paragraph, Title, Text } = Typography;
@@ -33,6 +34,8 @@ const CourseDetail = () => {
         <Task courseId={courseId} />
       ) : sectionKey === 'chapter' ? (
         <Chapter />
+      ) : sectionKey === 'studyRecord' ? (
+        <StudyRecord courseId={courseId} />
       ) : (
         <Card className="course-detail-card" bordered={false}>
           <Title className="course-detail-title" level={3}>

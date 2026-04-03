@@ -19,25 +19,33 @@ export type CurrentUserInfoDto = {
 };
 
 export type CurrentTeacherInfoDto = {
+    teacher_id?: string;
     teacher_number?: string;
     college?: string;
-    user_id: string;
+    user_id?: string;
     school_id?: string;
     school_name?: string;
 };
 
 export type CurrentStudentInfoDto = {
+    student_id?: string;
     student_number?: string;
     class_id?: string;
     college?: string;
-    user_id: string;
+    user_id?: string;
     school_id?: string;
     school_name?: string;
+};
+
+export type CurrentRoleInfoDto = {
+    teacherInfo?: CurrentTeacherInfoDto | null;
+    studentInfo?: CurrentStudentInfoDto | null;
 };
 
 export type CurrentUserProfile = {
     user: CurrentUserInfoDto;
     roles: Role[];
+    roleInfo?: CurrentRoleInfoDto | null;
     teacherInfo?: CurrentTeacherInfoDto | null;
     studentInfo?: CurrentStudentInfoDto | null;
     school_name: string;

@@ -4,12 +4,12 @@ import { CurrentTeacherInfoDto } from "@/type/user";
 const TEACHER_INFO_STORAGE_KEY = 'teacher_info';
 
 export class Teacher {
+    // 教师角色 ID
+    teacherId: string = '';
     // 工号
     teacherNumber: string = '';
     // 学院
     college: string = '';
-    // 关联用户 ID
-    userId: string = '';
     // 学校 ID
     schoolId: string = '';
     // 学校名称
@@ -23,7 +23,7 @@ export class Teacher {
 
     // 是否已有教师档案
     get hasProfile() {
-        return !!this.userId;
+        return !!this.teacherId;
     }
 
     // 从 localStorage 恢复教师信息（兼容旧 snake_case 缓存）
@@ -36,9 +36,9 @@ export class Teacher {
 
         try {
             const profile = JSON.parse(raw) || {};
+            this.teacherId = profile.teacherId || profile.teacher_id || profile.userId || profile.user_id || '';
             this.teacherNumber = profile.teacherNumber || profile.teacher_number || '';
             this.college = profile.college || '';
-            this.userId = profile.userId || profile.user_id || '';
             this.schoolId = profile.schoolId || profile.school_id || '';
             this.schoolName = profile.schoolName || profile.school_name || '';
         } catch (_error) {
@@ -49,9 +49,9 @@ export class Teacher {
 
     // 清空内存中的教师字段
     private clearFields() {
+        this.teacherId = '';
         this.teacherNumber = '';
         this.college = '';
-        this.userId = '';
         this.schoolId = '';
         this.schoolName = '';
     }
@@ -63,16 +63,16 @@ export class Teacher {
             return;
         }
 
+        this.teacherId = dto.teacher_id || dto.user_id || '';
         this.teacherNumber = dto.teacher_number || '';
         this.college = dto.college || '';
-        this.userId = dto.user_id || '';
         this.schoolId = dto.school_id || '';
         this.schoolName = dto.school_name || '';
 
         localStorage.setItem(TEACHER_INFO_STORAGE_KEY, JSON.stringify({
+            teacherId: this.teacherId,
             teacherNumber: this.teacherNumber,
             college: this.college,
-            userId: this.userId,
             schoolId: this.schoolId,
             schoolName: this.schoolName,
         }));

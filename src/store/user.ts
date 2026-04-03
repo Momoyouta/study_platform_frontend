@@ -133,6 +133,14 @@ export class User {
         return roleCandidates.find((item) => item === ROLE_MAP.STUDENT || item === ROLE_MAP.TEACHER) || null;
     }
 
+    // 兼容 roleInfo.{studentInfo/teacherInfo} 与旧平铺字段
+    private resolveRoleProfiles(profile: CurrentUserProfile) {
+        return {
+            studentInfo: profile.roleInfo?.studentInfo ?? profile.studentInfo ?? null,
+            teacherInfo: profile.roleInfo?.teacherInfo ?? profile.teacherInfo ?? null,
+        };
+    }
+
     // 统一提取认证接口有效载荷（兼容 envelope 与直出两种格式）
     private extractAuthPayload(response: ApiEnvelope<AuthPayload> | AuthPayload | undefined | null) {
         const payload = ((response as ApiEnvelope<AuthPayload>)?.data ?? response ?? {}) as AuthPayload;
@@ -243,14 +251,28 @@ export class User {
         const primaryRole = this.resolvePrimaryRole(profile);
         this.setRole(primaryRole);
 
-        if (profile.studentInfo) {
-            this.rootStore.StudentStore.setFromDto(profile.studentInfo);
+        const { studentInfo, teacherInfo } = this.resolveRoleProfiles(profile);
+
+        if (primaryRole === ROLE_MAP.STUDENT && studentInfo) {
+            this.rootStore.StudentStore.setFromDto(studentInfo);
             this.rootStore.TeacherStore.clearProfile();
             return;
         }
 
-        if (profile.teacherInfo) {
-            this.rootStore.TeacherStore.setFromDto(profile.teacherInfo);
+        if (primaryRole === ROLE_MAP.TEACHER && teacherInfo) {
+            this.rootStore.TeacherStore.setFromDto(teacherInfo);
+            this.rootStore.StudentStore.clearProfile();
+            return;
+        }
+
+        if (studentInfo) {
+            this.rootStore.StudentStore.setFromDto(studentInfo);
+            this.rootStore.TeacherStore.clearProfile();
+            return;
+        }
+
+        if (teacherInfo) {
+            this.rootStore.TeacherStore.setFromDto(teacherInfo);
             this.rootStore.StudentStore.clearProfile();
             return;
         }

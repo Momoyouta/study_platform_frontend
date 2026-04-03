@@ -69,3 +69,19 @@ export const updateAvatar = (data: UpdateAvatarPayload) => {
 export const updatePassword = (data: UpdatePasswordPayload) => {
     return http.put('/user/profile/updatePassword', data);
 }
+
+export const listTeacherCoursesUser = (params: { page: number, pageSize: number, teacher_id: string, school_id?: string }) => {
+    return http.get('/course/listTeacherCoursesUser', { params });
+}
+
+export const listStudentCoursesUser = (params: { page: number, pageSize: number, student_id: string, school_id?: string }) => {
+    return http.get('/course/listStudentCoursesUser', { params });
+}
+
+export const joinCourseByInviteCode = (data: { code: string }) => {
+    return http.post('/student/joinCourseByInviteCode', data);
+}
+
+export const leaveCourseStudent = (courseId: string) => {
+    return http.post('/student/leaveCourse', { courseId });
+}

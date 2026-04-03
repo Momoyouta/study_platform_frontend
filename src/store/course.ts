@@ -1,9 +1,12 @@
 import { makeAutoObservable } from "mobx";
 
 import { get } from '@/http/http';
+import { listStudentCoursesUser, listTeacherCoursesUser } from "@/http/api";
 
 export class Course {
-    courseList: any[] = [];
+    list: any[] = [];
+    sourceList: any[] = [];
+    total: number = 0;
     currentCourseId: string = '';
     description: string = '';
     loading: boolean = false;
@@ -12,41 +15,92 @@ export class Course {
         makeAutoObservable(this);
     }
 
-    setCourseList(list: any[]) {
-        this.courseList = list;
+    setList(list: any[]) {
+        this.list = list;
+        this.sourceList = list;
     }
 
-    fetchCourseList(params?: { keyword?: string }) {
-        // mock logic replacing what's in MyCoursesTabContent.tsx
-        const mockCourses = [
-            { id: 'e39839f0-72be-48b5-8d95-4fdb80aa0cfe', title: '课程名称123123123123123123123123123123', teacher: '教师名称' },
-            { id: 2, title: '课程名称', teacher: '教师名称' },
-            { id: 3, title: '课程名称', teacher: '教师名称' },
-            { id: 4, title: '课程名称', teacher: '教师名称' },
-            { id: 5, title: '课程名称', teacher: '教师名称' },
-            { id: 6, title: '课程名称', teacher: '教师名称' },
-            { id: 7, title: '课程名称', teacher: '教师名称' },
-            { id: 8, title: '课程名称', teacher: '教师名称' },
-            { id: 9, title: '课程名称', teacher: '教师名称' },
-            { id: 10, title: '课程名称', teacher: '教师名称' },
-            { id: 11, title: '课程名称', teacher: '教师名称' },
-            { id: 12, title: '课程名称', teacher: '教师名称' },
-            { id: 13, title: '课程名称', teacher: '教师名称' },
-            { id: 14, title: '课程名称', teacher: '教师名称' },
-            { id: 15, title: '课程名称', teacher: '教师名称' },
-            { id: 16, title: '课程名称', teacher: '教师名称' },
-            { id: 17, title: '课程名称', teacher: '教师名称' },
-        ];
+    setTotal(total: number) {
+        this.total = total;
+    }
 
-        let filtered = mockCourses;
-        if (params?.keyword) {
-            const normalized = params.keyword.trim();
-            if (normalized) {
-                filtered = mockCourses.filter((course) => course.title.includes(normalized));
+    /**
+     * 用户端查询老师所教课程列表
+     */
+    async fetchTeacherCourses(params: { page: number; pageSize: number; teacher_id: string; school_id?: string }) {
+        this.loading = true;
+        try {
+            const res: any = await listTeacherCoursesUser(params);
+            if (res?.code === 200) {
+                const nextList = res.data?.list || [];
+                this.list = nextList;
+                this.sourceList = nextList;
+                this.total = res.data?.total || 0;
             }
+        } catch (error) {
+            console.error('Failed to fetch teacher courses', error);
+        } finally {
+            this.loading = false;
+        }
+    }
+
+    /**
+     * 用户端查询学生所学课程列表
+     */
+    async fetchStudentCourses(params: { page: number; pageSize: number; student_id: string; school_id?: string }) {
+        this.loading = true;
+        try {
+            const res: any = await listStudentCoursesUser(params);
+            if (res?.code === 200) {
+                const nextList = res.data?.list || [];
+                this.list = nextList;
+                this.sourceList = nextList;
+                this.total = res.data?.total || 0;
+            }
+        } catch (error) {
+            console.error('Failed to fetch student courses', error);
+        } finally {
+            this.loading = false;
+        }
+    }
+
+    fetchCourseList(params?: { keyword?: string; fields?: string[] }) {
+        const keyword = params?.keyword?.trim() || '';
+        const fields = params?.fields?.length ? params.fields : ['title'];
+
+        if (!this.sourceList.length && this.list.length) {
+            this.sourceList = this.list;
         }
 
-        this.courseList = filtered;
+        const source = this.sourceList.length ? this.sourceList : this.list;
+        if (!keyword) {
+            this.list = source;
+            return;
+        }
+
+        const normalizedKeyword = keyword.toLowerCase();
+        const fieldResolvers: Record<string, (course: any) => any[]> = {
+            title: (course) => [course?.title, course?.name],
+        };
+
+        this.list = source.filter((course) => {
+            return fields.some((field) => {
+                const resolver = fieldResolvers[field];
+                const values = resolver ? resolver(course) : [course?.[field]];
+
+                return values.some((value) => {
+                    if (value === null || value === undefined) {
+                        return false;
+                    }
+
+                    if (Array.isArray(value)) {
+                        return value.some((item) => String(item).toLowerCase().includes(normalizedKeyword));
+                    }
+
+                    return String(value).toLowerCase().includes(normalizedKeyword);
+                });
+            });
+        });
     }
 
     async fetchCourseDescription(id: string) {
@@ -68,7 +122,9 @@ export class Course {
     }
 
     reset() {
-        this.courseList = [];
+        this.list = [];
+        this.sourceList = [];
+        this.total = 0;
         this.currentCourseId = '';
         this.description = '';
         this.loading = false;

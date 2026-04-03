@@ -1,17 +1,19 @@
 import { makeAutoObservable } from "mobx";
 import { CurrentStudentInfoDto } from "@/type/user";
+import { leaveCourseStudent } from "@/http/api";
+import { message } from "antd";
 
 const STUDENT_INFO_STORAGE_KEY = 'student_info';
 
 export class Student {
+    // 学生角色 ID
+    studentId: string = '';
     // 学号
     studentNumber: string = '';
     // 班级 ID
     classId: string = '';
     // 学院
     college: string = '';
-    // 关联用户 ID
-    userId: string = '';
     // 学校 ID
     schoolId: string = '';
     // 学校名称
@@ -25,7 +27,7 @@ export class Student {
 
     // 是否已有学生档案
     get hasProfile() {
-        return !!this.userId;
+        return !!this.studentId;
     }
 
     // 从 localStorage 恢复学生信息（兼容旧 snake_case 缓存）
@@ -38,10 +40,10 @@ export class Student {
 
         try {
             const profile = JSON.parse(raw) || {};
+            this.studentId = profile.studentId || profile.student_id || profile.userId || profile.user_id || '';
             this.studentNumber = profile.studentNumber || profile.student_number || '';
             this.classId = profile.classId || profile.class_id || '';
             this.college = profile.college || '';
-            this.userId = profile.userId || profile.user_id || '';
             this.schoolId = profile.schoolId || profile.school_id || '';
             this.schoolName = profile.schoolName || profile.school_name || '';
         } catch (_error) {
@@ -52,10 +54,10 @@ export class Student {
 
     // 清空内存中的学生字段
     private clearFields() {
+        this.studentId = '';
         this.studentNumber = '';
         this.classId = '';
         this.college = '';
-        this.userId = '';
         this.schoolId = '';
         this.schoolName = '';
     }
@@ -67,18 +69,18 @@ export class Student {
             return;
         }
 
+        this.studentId = dto.student_id || dto.user_id || '';
         this.studentNumber = dto.student_number || '';
         this.classId = dto.class_id || '';
         this.college = dto.college || '';
-        this.userId = dto.user_id || '';
         this.schoolId = dto.school_id || '';
         this.schoolName = dto.school_name || '';
 
         localStorage.setItem(STUDENT_INFO_STORAGE_KEY, JSON.stringify({
+            studentId: this.studentId,
             studentNumber: this.studentNumber,
             classId: this.classId,
             college: this.college,
-            userId: this.userId,
             schoolId: this.schoolId,
             schoolName: this.schoolName,
         }));
@@ -88,6 +90,14 @@ export class Student {
     clearProfile() {
         this.clearFields();
         localStorage.removeItem(STUDENT_INFO_STORAGE_KEY);
+    }
+
+    async leaveCourse(courseId: string) {
+        await leaveCourseStudent(courseId)
+            .then(() => {
+                message.success('退课成功');
+                window.location.href = '/courses'
+            });
     }
 
     // 兼容旧调用方的方法别名

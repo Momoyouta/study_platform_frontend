@@ -3,12 +3,12 @@ import './CourseCard.less';
 
 const { Text } = Typography;
 
-const CourseCard = ({ title, teacher, onClick }) => (
+const CourseCard = ({ title, teacher, onClick, imgSrc}) => (
   <Card className="course-card" 
     hoverable 
     onClick={onClick}
     cover={
-      <img className="course-card-media" src="src\assets\login\login-banner.png" alt="课程图片" />
+      <img className="course-card-media" src={imgSrc} alt="课程图片" />
     }
   >
     <div className="course-card-title">{title}</div>
