@@ -1,0 +1,173 @@
+@import "../../theme/variables.less";
+.course-detail-chapter-card {
+  min-height: calc(100vh - 150px);
+  border-radius: 0;
+  border: 1px solid #efefef;
+}
+
+.course-detail-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.course-detail-progress-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: @dot;
+  flex-shrink: 0;
+}
+
+.course-detail-progress-text {
+  color: #5f6f88;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.course-detail-progress-bar {
+  width: 110px;
+  margin-bottom: 0 !important;
+}
+
+.course-detail-progress-bar .ant-progress-inner {
+  border-radius: 999px;
+}
+
+.course-detail-divider {
+  height: 1px;
+  background: #efefef;
+  margin-bottom: 10px;
+}
+
+.course-detail-catalog-title {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #b2b5bc;
+  font-size: 16px;
+}
+
+.course-detail-chapter-collapse {
+  background: transparent;
+}
+
+.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item {
+  border-bottom: none;
+}
+
+.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  align-items: center;
+  background: #f3f5f8;
+  padding: 10px 16px;
+  border-radius: 0;
+}
+
+.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-content {
+  border-top: none;
+}
+
+.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-content > .ant-collapse-content-box {
+  padding: 8px 6px 0 4px;
+}
+
+.chapter-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chapter-panel-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 43px;
+  height: 18px;
+  border-radius: 999px;
+  background: #cfd3d8;
+  padding-right: 4px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.chapter-panel-index-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #f5f6f8;
+  border: 1px solid #d5dae2;
+  color: #9ca3af;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.chapter-panel-label {
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.chapter-expand-icon {
+  font-size: 12px;
+  color: #9eabc0;
+  transition: transform 0.2s ease;
+}
+
+.chapter-expand-icon-collapsed {
+  transform: rotate(180deg);
+}
+
+.chapter-task-list {
+  padding: 10px 0 0 2px;
+}
+
+.chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item {
+  padding-bottom: 20px;
+}
+
+.chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item:last-child {
+  padding-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .course-detail-chapter-card {
+    min-height: auto;
+  }
+
+  .course-detail-progress-row {
+    flex-wrap: wrap;
+  }
+
+  .chapter-task-list {
+    padding-top: 8px;
+  }
+
+  .chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item {
+    padding-bottom: 14px;
+  }
+
+  .chapter-panel-title {
+    gap: 10px;
+  }
+
+  .chapter-panel-index {
+    width: 62px;
+    height: 30px;
+    padding-right: 3px;
+  }
+
+  .chapter-panel-index-circle {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+
+  .chapter-panel-label {
+    font-size: 16px;
+  }
+}
