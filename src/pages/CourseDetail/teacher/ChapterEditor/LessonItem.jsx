@@ -25,7 +25,7 @@ const LessonItem = ({ lesson, chapterId, chapterIndex, lessonIndex, onEdit }) =>
     position: 'relative',
   };
 
-  const isMounted = !!lesson.resource_id;
+  const isMounted = !!lesson.video_path;
 
   return (
     <div className="lesson-item-wrapper" ref={setNodeRef} style={style}>

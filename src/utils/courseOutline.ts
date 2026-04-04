@@ -4,7 +4,7 @@ export interface CourseOutlineLessonDto {
   lesson_id: string;
   title: string;
   description: string;
-  resource_id: string | null;
+  video_path: string | null;
   resource_name: string;
   sort_order: number;
   duration: number;
@@ -42,7 +42,7 @@ const normalizeLesson = (lesson: Partial<CourseOutlineLessonDto>, index: number)
   lesson_id: toSafeString(lesson.lesson_id, `temp_lesson_${index + 1}`),
   title: lesson.title || '未命名课时',
   description: lesson.description || '',
-  resource_id: lesson.resource_id ?? null,
+  video_path: lesson.video_path ?? null,
   resource_name: lesson.resource_name || '',
   sort_order: typeof lesson.sort_order === 'number' ? lesson.sort_order : index + 1,
   duration: typeof lesson.duration === 'number' ? lesson.duration : 0,

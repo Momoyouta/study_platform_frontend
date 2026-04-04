@@ -347,7 +347,7 @@ const CourseOutline = ({ courseId }) => {
                 title: '新建课时',
                 description: '',
                 sort_order: chapter.lessons.length + 1,
-                resource_id: null,
+                video_path: null,
                 resource_name: '',
                 duration: 0
               }
@@ -451,9 +451,9 @@ const CourseOutline = ({ courseId }) => {
           lessons: chapter.lessons.map((lesson) => (
             lesson.lesson_id === updatedLesson.lesson_id
               ? {
-                  ...lesson,
-                  ...updatedLesson,
-                }
+                ...lesson,
+                ...updatedLesson,
+              }
               : lesson
           )),
         };
@@ -483,9 +483,9 @@ const CourseOutline = ({ courseId }) => {
           lessons: chapter.lessons.map((lesson) => (
             lesson.lesson_id === updatedLesson.lesson_id
               ? {
-                  ...lesson,
-                  ...updatedLesson,
-                }
+                ...lesson,
+                ...updatedLesson,
+              }
               : lesson
           )),
         };
@@ -501,7 +501,7 @@ const CourseOutline = ({ courseId }) => {
           chapter_id: updatedLesson.chapterId,
           title: updatedLesson.title,
           description: updatedLesson.description || '',
-          resource_id: updatedLesson.resource_id ?? null,
+          video_path: updatedLesson.video_path ?? null,
           duration: typeof updatedLesson.duration === 'number' ? updatedLesson.duration : (currentLesson?.duration || 0),
           sort_order: typeof currentLesson?.sort_order === 'number' ? currentLesson.sort_order : (updatedLesson.sort_order || 1),
         },
@@ -616,7 +616,7 @@ const CourseOutline = ({ courseId }) => {
       if (activeType === 'lesson' && overType === 'lesson') {
         const activeChapterId = active.data.current?.chapterId;
         const overChapterId = over.data.current?.chapterId;
-        
+
         if (activeChapterId === overChapterId) {
           setOutlineDraft((prev) => {
             if (!prev) {
@@ -665,7 +665,7 @@ const CourseOutline = ({ courseId }) => {
 
         <div className="outline-body">
           <div className="outline-main">
-            <DndContext 
+            <DndContext
               sensors={sensors}
               collisionDetection={collisionDetectionStrategy}
               onDragEnd={handleDragEnd}
@@ -673,12 +673,12 @@ const CourseOutline = ({ courseId }) => {
               <div className="outline-dnd-layout">
                 <DeleteZone />
                 <div className="chapter-list-container">
-                  <SortableContext 
+                  <SortableContext
                     items={chapterIds}
                     strategy={verticalListSortingStrategy}
                   >
                     {outlineDraft?.chapters.map((chapter, index) => (
-                      <ChapterItem 
+                      <ChapterItem
                         key={chapter.chapter_id}
                         chapter={chapter}
                         index={index}
@@ -701,7 +701,7 @@ const CourseOutline = ({ courseId }) => {
         </div>
       </div>
 
-      <LessonEditorDrawer 
+      <LessonEditorDrawer
         key={editingLesson?.lesson_id || 'lesson-drawer-empty'}
         visible={!!editingLesson}
         lesson={editingLesson}

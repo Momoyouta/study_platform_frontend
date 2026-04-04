@@ -178,7 +178,7 @@ export const updateLessonQuick = (data: {
         chapter_id: string;
         title: string;
         description?: string;
-        resource_id?: string | null;
+        video_path?: string | null;
         duration?: number;
         sort_order?: number;
     };
@@ -196,10 +196,14 @@ export const updateCourseDescription = (data: { id: string; description: string 
     return http.put('/course/updateCourse', data);
 }
 
+export const updateCourseBasicInfo = (data: { id: string; name: string; status: number; cover_img?: string }) => {
+    return http.put('/course/updateCourse', data);
+}
+
 // ===== 教学组管理（教师端） =====
 
-export const getCourseCreatorId = (id: string, teacher_id: string) => {
-    return http.get(`/course/getCourseCreatorId/${id}`, { params: { teacher_id } });
+export const getCourseBaseInfo = (id: string, teacher_id: string) => {
+    return http.get(`/course/getCourseBaseInfo/${id}`, { params: { teacher_id } });
 }
 
 export const listTeachingGroup = (params: {

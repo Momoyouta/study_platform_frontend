@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { get } from '@/http/http';
-import { getCourseCreatorId, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses } from "@/http/api";
+import { getCourseBaseInfo, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses } from "@/http/api";
 
 
 export class Course {
@@ -22,6 +22,9 @@ export class Course {
     currentCreateId: string = '';
     currentSchoolId: string = '';
     isCourseCreator: boolean = false;
+    courseName: string = '';
+    courseCover: string = '';
+    publishStatus: number = 0;
     description: string = '';
     chapters: any[] = [];
     teachingGroups: any[] = [];
@@ -66,24 +69,27 @@ export class Course {
     }
 
     /**
-     * 从服务端获取真实的创作者 ID 并更新权限状态
+     * 从服务端获取真实的创作者 ID 及课程基础信息并更新权限状态
      */
-    async fetchCourseCreator(id: string) {
+    async fetchCourseBaseInfo(id: string) {
         const myTeacherId = this.rootStore?.TeacherStore?.teacherId;
         if (!id || !myTeacherId) return;
 
-        // 如果已经在 Store 中找到了创作者 ID（无论是从 URL、列表还是之前的请求），则不再重复请求
-        if (this.currentCreateId) return;
-
         try {
-            const res: any = await getCourseCreatorId(id, myTeacherId);
+            const res: any = await getCourseBaseInfo(id, myTeacherId);
             if (res?.code === 200) {
-                this.currentCreateId = res.data?.creator_id || '';
+                const info = res.data;
+                if (info) {
+                    this.currentCreateId = info.creator_id || '';
+                    this.courseName = info.course_name || '';
+                    this.courseCover = info.course_cover || '';
+                    this.publishStatus = info.publish_status || 0;
+                }
                 // 再次判定身份
                 this.isCourseCreator = !!myTeacherId && !!this.currentCreateId && myTeacherId === this.currentCreateId;
             }
         } catch (error) {
-            console.error('Failed to fetch course creator id', error);
+            console.error('Failed to fetch course base info', error);
         }
     }
 
@@ -248,7 +254,12 @@ export class Course {
         this.createdTotal = 0;
         this.studentList = [];
         this.studentTotal = 0;
-        this.currentCourseId = '';
+        this.currentCreateId = '';
+        this.currentSchoolId = '';
+        this.isCourseCreator = false;
+        this.courseName = '';
+        this.courseCover = '';
+        this.publishStatus = 0;
         this.description = '';
         this.chapters = [];
         this.loading = false;

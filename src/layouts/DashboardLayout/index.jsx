@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Avatar, Dropdown, Layout, Menu, message, Grid, Button } from 'antd';
+import { Avatar, Dropdown, Layout, Menu, message, Grid, Button, Modal, Form, Input, Switch } from 'antd';
 import {
   AppstoreOutlined,
   BookOutlined,
@@ -13,11 +13,14 @@ import {
   ScheduleOutlined,
   UserOutlined,
   TeamOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { ROLE_MAP } from '@/type/map.js';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Store, { resetStores } from '@/store/index.ts';
 import { buildFileViewUrl } from '@/utils/fileUrl.ts';
+import { updateCourseBasicInfo } from '@/http/api.ts';
+import TempImageUpload from '@/components/TempImageUpload.tsx';
 import './index.less';
 
 const { Header, Sider, Content } = Layout;
@@ -47,6 +50,52 @@ const DashboardLayout = observer(() => {
   const userAvatarSrc = Store.UserStore.avatar ? buildFileViewUrl(Store.UserStore.avatar) || undefined : undefined;
   const isCourseMenus = location.pathname === '/courseDetail' || location.pathname.startsWith('/courseDetail/');
   const userRole = Store.UserStore.role;
+  const isCourseCreator = Store.CourseStore.isCourseCreator;
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleOpenEdit = () => {
+    editForm.setFieldsValue({
+      name: Store.CourseStore.courseName,
+      status: Store.CourseStore.publishStatus === 1,
+      cover_img: Store.CourseStore.courseCover
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (values) => {
+    if (!courseId) {
+      message.error('未找到当前课程');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const payload = {
+        id: courseId,
+        name: values.name,
+        status: values.status ? 1 : 0,
+        cover_img: values.cover_img
+      };
+      const res = await updateCourseBasicInfo(payload);
+      if (res?.code === 200) {
+        message.success('课程信息更新成功');
+        setIsEditModalOpen(false);
+        // 直接更新 CourseStore 的状态
+        Store.CourseStore.courseName = payload.name;
+        Store.CourseStore.publishStatus = payload.status;
+        Store.CourseStore.courseCover = payload.cover_img || '';
+      } else {
+        message.error(res?.msg || '更新失败');
+      }
+    } catch (error) {
+      console.error(error);
+      message.error('更新失败');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const currentMenus = (isCourseMenus ? sideMenusCourse : sideMenusHome).filter((item) => {
     if (item.roles && !item.roles.includes(userRole)) {
@@ -141,6 +190,21 @@ const DashboardLayout = observer(() => {
               {!collapsed && <div className="sidebar-user-name">{userName}</div>}
             </div>
 
+            {isCourseMenus && isCourseCreator && (
+              <div style={{ padding: '0 8px', margin: '8px 0' }}>
+                <Button
+                  block
+                  icon={<EditOutlined />}
+                  color="purple"
+                  variant="solid"
+                  onClick={handleOpenEdit}
+                  title="编辑课程基础信息"
+                >
+                  {!collapsed && '编辑课程基础信息'}
+                </Button>
+              </div>
+            )}
+
             <Menu
               key={isCourseMenus ? 'course-menu' : 'home-menu'}
               className="sidebar-menu-list sidebar-menu-switch"
@@ -155,7 +219,7 @@ const DashboardLayout = observer(() => {
             />
             <div className="sidebar-footer">
               {isCourseMenus && (
-                <span className='sidebar-goback' onClick={()=>{navigate('/course');}}>
+                <span className='sidebar-goback' onClick={() => { navigate('/course'); }}>
                   {'←返回课程列表页'}
                 </span>
               )}
@@ -167,6 +231,31 @@ const DashboardLayout = observer(() => {
           <Outlet />
         </Content>
       </Layout>
+
+      <Modal
+        title="编辑课程基础信息"
+        open={isEditModalOpen}
+        onCancel={() => setIsEditModalOpen(false)}
+        onOk={() => editForm.submit()}
+        confirmLoading={submitting}
+        destroyOnClose
+      >
+        <Form form={editForm} onFinish={handleEditSubmit} layout="vertical">
+          <Form.Item name="name" label="课程标题" rules={[{ required: true, message: '请输入课程标题' }]}>
+            <Input placeholder="请输入课程标题" />
+          </Form.Item>
+          <Form.Item name="status" label="发布状态" valuePropName="checked">
+            <Switch checkedChildren="已发布" unCheckedChildren="未发布" />
+          </Form.Item>
+          <Form.Item name="cover_img" label="课程封面">
+            <TempImageUpload
+              variant="picture-card"
+              onChange={(path) => editForm.setFieldValue('cover_img', path)}
+              previewPath={editForm.getFieldValue('cover_img')}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Layout>
   );
 });

@@ -53,9 +53,9 @@ const CourseDetail = observer(() => {
 			schoolId: urlSchoolId 
 		});
 
-		// 2. 只有在教师模式下才需要权威判定
+		// 2. 只有在教师模式下才需要获取课程信息和权威判定
 		if (UserStore.role === ROLE_MAP.TEACHER) {
-			CourseStore.fetchCourseCreator(urlCourseId);
+			CourseStore.fetchCourseBaseInfo(urlCourseId);
 		}
 	}, [urlCourseId, UserStore.role, CourseStore]);
 
