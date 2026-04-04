@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../../store/index';
+import { useStore } from '@/store';
 import MDEditor from '@uiw/react-md-editor';
+
+import './Task.less';
+import Title from 'antd/es/typography/Title';
 
 type TaskProps = {
     courseId: string | null;
@@ -17,9 +20,13 @@ const Task = observer(({ courseId }: TaskProps) => {
     }, [courseId, CourseStore]);
 
     return (
-        <div style={{ padding: '0 16px' }}>
+        <div className="task-container">
+            <Title level={2} className="group-title">课程任务</Title>
             <div data-color-mode="light">
-                <MDEditor.Markdown source={CourseStore.description || ''} style={{ whiteSpace: 'pre-wrap', backgroundColor: 'transparent' }} />
+                <MDEditor.Markdown
+                    className="task-markdown"
+                    source={CourseStore.description || ''}
+                />
             </div>
         </div>
     );

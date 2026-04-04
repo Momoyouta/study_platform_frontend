@@ -14,9 +14,17 @@ const Course = observer(() => {
 		{
 			key: 'my-courses',
 			label: isTeacher ? '我教的课' : '我学的课',
-			children: <MyCoursesTabContent />,
+			children: <MyCoursesTabContent mode="teaching" />,
 		},
 	];
+
+	if (isTeacher) {
+		tabItems.push({
+			key: 'my-created-courses',
+			label: '我创建的课程',
+			children: <MyCoursesTabContent mode="created" />,
+		});
+	}
 
 	return (
 		<section className="course-panel">

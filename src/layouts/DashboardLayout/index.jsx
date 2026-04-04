@@ -12,7 +12,9 @@ import {
   ReadOutlined,
   ScheduleOutlined,
   UserOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
+import { ROLE_MAP } from '@/type/map.js';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Store, { resetStores } from '@/store/index.ts';
 import { buildFileViewUrl } from '@/utils/fileUrl.ts';
@@ -33,7 +35,8 @@ const sideMenusCourse = [
   { key: 'chapter', label: '章节', path: '/chapter', icon: <ReadOutlined /> },
   { key: 'homework', label: '作业', path: '/homework', icon: <FileDoneOutlined /> },
   { key: 'materials', label: '资料', path: '/materials', icon: <FolderOpenOutlined /> },
-  { key: 'studyRecord', label: '学习记录', path: '/studyRecord', icon: <ScheduleOutlined /> },
+  { key: 'studyRecord', label: '学习记录', path: '/studyRecord', icon: <ScheduleOutlined />, roles: [ROLE_MAP.STUDENT] },
+  { key: 'teachingGroup', label: '教学组', path: '/teachingGroup', icon: <TeamOutlined />, roles: [ROLE_MAP.TEACHER] },
 ];
 
 const DashboardLayout = observer(() => {
@@ -43,7 +46,14 @@ const DashboardLayout = observer(() => {
   const userName = Store.UserStore.displayName || '未命名用户';
   const userAvatarSrc = Store.UserStore.avatar ? buildFileViewUrl(Store.UserStore.avatar) || undefined : undefined;
   const isCourseMenus = location.pathname === '/courseDetail' || location.pathname.startsWith('/courseDetail/');
-  const currentMenus = isCourseMenus ? sideMenusCourse : sideMenusHome;
+  const userRole = Store.UserStore.role;
+
+  const currentMenus = (isCourseMenus ? sideMenusCourse : sideMenusHome).filter((item) => {
+    if (item.roles && !item.roles.includes(userRole)) {
+      return false;
+    }
+    return true;
+  });
 
   const courseId = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -64,6 +74,7 @@ const DashboardLayout = observer(() => {
       if (location.pathname.startsWith('/courseDetail/homework')) return 'homework';
       if (location.pathname.startsWith('/courseDetail/materials')) return 'materials';
       if (location.pathname.startsWith('/courseDetail/studyRecord')) return 'studyRecord';
+      if (location.pathname.startsWith('/courseDetail/teachingGroup')) return 'teachingGroup';
       return '';
     }
 

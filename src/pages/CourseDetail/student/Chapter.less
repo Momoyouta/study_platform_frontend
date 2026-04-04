@@ -1,4 +1,5 @@
-@import "../../theme/variables.less";
+@import "../../../theme/variables.less";
+
 .course-detail-chapter-card {
   min-height: calc(100vh - 150px);
   border-radius: 0;
@@ -52,22 +53,22 @@
   background: transparent;
 }
 
-.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item {
+.course-detail-chapter-collapse.ant-collapse>.ant-collapse-item {
   border-bottom: none;
 }
 
-.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+.course-detail-chapter-collapse.ant-collapse>.ant-collapse-item>.ant-collapse-header {
   align-items: center;
   background: #f3f5f8;
   padding: 10px 16px;
   border-radius: 0;
 }
 
-.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-content {
+.course-detail-chapter-collapse.ant-collapse>.ant-collapse-item>.ant-collapse-content {
   border-top: none;
 }
 
-.course-detail-chapter-collapse.ant-collapse > .ant-collapse-item > .ant-collapse-content > .ant-collapse-content-box {
+.course-detail-chapter-collapse.ant-collapse>.ant-collapse-item>.ant-collapse-content>.ant-collapse-content-box {
   padding: 8px 6px 0 4px;
 }
 
@@ -81,11 +82,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  width: 43px;
-  height: 18px;
-  border-radius: 999px;
-  background: #cfd3d8;
-  padding-right: 4px;
+  width: 38px;
+  height: 20px;
+  border-radius: 10px;
+  background: #dfe3ea;
+  padding-right: 2px;
   box-sizing: border-box;
   flex-shrink: 0;
 }
@@ -94,23 +95,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 25px;
-  height: 25px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #f5f6f8;
-  border: 1px solid #d5dae2;
-  color: #9ca3af;
-  font-size: 22px;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
 }
 
 .chapter-panel-label {
   color: #111827;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
 }
+
 
 .chapter-expand-icon {
   font-size: 12px;
@@ -123,16 +124,42 @@
 }
 
 .chapter-task-list {
-  padding: 10px 0 0 2px;
+  padding: 10px 0 0 14px;
 }
 
-.chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item {
+.chapter-task-list .ant-steps.ant-steps-vertical>.ant-steps-item {
   padding-bottom: 20px;
 }
 
-.chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item:last-child {
+.chapter-task-list .ant-steps.ant-steps-vertical>.ant-steps-item:last-child {
   padding-bottom: 0;
 }
+
+/* 缩小 Steps 的节点小圆点 */
+.chapter-task-list .ant-steps-item-icon,
+.chapter-task-list .ant-steps-icon-dot {
+  width: 6px !important;
+  height: 6px !important;
+  line-height: 6px !important;
+  margin-top: 8px !important;
+  background: #d1d5db !important;
+  border-color: #d1d5db !important;
+}
+
+.chapter-task-list .ant-steps-item-tail {
+  top: 14px !important;
+  padding: 0 !important;
+  left: 3px !important;
+}
+
+.chapter-task-list .ant-steps-item-title {
+  color: #4b5563 !important;
+  line-height: 22px !important;
+  font-size: 14px !important;
+  padding-right: 0 !important;
+}
+
+
 
 @media (max-width: 900px) {
   .course-detail-chapter-card {
@@ -147,7 +174,7 @@
     padding-top: 8px;
   }
 
-  .chapter-task-list .ant-steps.ant-steps-vertical > .ant-steps-item {
+  .chapter-task-list .ant-steps.ant-steps-vertical>.ant-steps-item {
     padding-bottom: 14px;
   }
 

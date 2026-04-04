@@ -9,7 +9,9 @@
     "jsx": "preserve",                // 如果是 React/Vue
     "useDefineForClassFields": true,  // 配合 MobX 必须开启
     "experimentalDecorators": true,   // 装饰器
-    "isolatedModules": true,          // Vite 必须要求
+    "isolatedModules": true,          
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {

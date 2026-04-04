@@ -44,6 +44,10 @@ const routes = [
                 component: CourseDetailPage,
             },
             {
+                path: 'courseDetail/teachingGroup',
+                component: CourseDetailPage,
+            },
+            {
                 path: 'resource-plaza',
                 component: lazy(() => import('../pages/ResourcePlaza/index.jsx')),
             },

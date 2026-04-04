@@ -19,7 +19,7 @@ class RootStore {
         this.StudentStore = new Student();
         this.TeacherStore = new Teacher();
         this.UserStore = new User(this);
-        this.CourseStore = new Course();
+        this.CourseStore = new Course(this);
     }
 }
 

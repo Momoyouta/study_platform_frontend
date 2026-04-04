@@ -6,46 +6,64 @@ import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../../store/index';
 import { ROLE_MAP } from '../../type/map.js';
-import { joinCourseByInviteCode } from '../../http/api';
+import { joinCourseByInviteCode, createCourse } from '../../http/api';
 import CourseCard from '../../components/CourseCard/CourseCard.jsx';
 import './MyCoursesTabContent.less';
 import { toViewFileUrl } from '@/utils/fileUrl';
 
 const { useBreakpoint } = Grid;
 
-const MyCoursesTabContent = observer(() => {
+interface MyCoursesTabContentProps {
+	mode?: 'teaching' | 'created';
+}
+
+const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContentProps) => {
 	const { CourseStore, UserStore, StudentStore, TeacherStore } = useStore();
 	const [keyword, setKeyword] = useState('');
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [form] = Form.useForm();
+	const [createForm] = Form.useForm();
 	const screens = useBreakpoint();
 	const navigate = useNavigate();
 
 	const isTeacher = UserStore.role === ROLE_MAP.TEACHER;
 	const isStudent = UserStore.role === ROLE_MAP.STUDENT;
 
-	const refreshList = () => {
+	const refreshList = (searchVal?: string) => {
+		const currentKeyword = searchVal !== undefined ? searchVal : keyword;
 		if (isTeacher) {
-			CourseStore.fetchTeacherCourses({
-				page: 1,
-				pageSize: 10,
-				teacher_id: TeacherStore.teacherId,
-				school_id: TeacherStore.schoolId
-			});
+			if (mode === 'created') {
+				CourseStore.fetchMyCreatedCourses({
+					page: 1,
+					pageSize: 10,
+					school_id: TeacherStore.schoolId,
+					keyword: currentKeyword
+				});
+			} else {
+				CourseStore.fetchTeacherCourses({
+					page: 1,
+					pageSize: 10,
+					teacher_id: TeacherStore.teacherId,
+					school_id: TeacherStore.schoolId,
+					keyword: currentKeyword
+				});
+			}
 		} else {
 			CourseStore.fetchStudentCourses({
 				page: 1,
 				pageSize: 10,
 				student_id: StudentStore.studentId,
-				school_id: StudentStore.schoolId
+				school_id: StudentStore.schoolId,
+				keyword: currentKeyword
 			});
 		}
 	};
 
 	useEffect(() => {
 		refreshList();
-	}, [CourseStore, UserStore.role, StudentStore.studentId, TeacherStore.teacherId, StudentStore.schoolId, TeacherStore.schoolId]);
+	}, [CourseStore, UserStore.role, StudentStore.studentId, TeacherStore.teacherId, StudentStore.schoolId, TeacherStore.schoolId, mode]);
 
 	const courseColumns = useMemo(() => {
 		if (screens.xxl) return 4;
@@ -56,18 +74,19 @@ const MyCoursesTabContent = observer(() => {
 
 	const handleSearch = (value: string) => {
 		setKeyword(value);
-		CourseStore.fetchCourseList({ keyword: value });
+		refreshList(value);
 	};
 
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const val = event.target.value;
 		setKeyword(val);
-		CourseStore.fetchCourseList({ keyword: val });
+		// fetchCourseList only searches locally, refreshList searches from API
+		// For consistency with other tabs, use refreshList if we want server-side search
 	};
 
 	const handleAction = () => {
 		if (isTeacher) {
-			message.info('创建课程功能暂未开放');
+			setIsCreateModalOpen(true);
 		} else {
 			setIsModalOpen(true);
 		}
@@ -90,9 +109,35 @@ const MyCoursesTabContent = observer(() => {
 		}
 	};
 
-	const handleOpenCourseDetail = (courseId: string) => {
-		navigate(`/courseDetail/?courseId=${courseId}`);
+	const handleCreate = async (values: { name: string }) => {
+		setSubmitting(true);
+		try {
+			const res: any = await createCourse(values);
+			if (res?.code === 200) {
+				message.success('创建课程成功');
+				setIsCreateModalOpen(false);
+				createForm.resetFields();
+				// 直接跳转到详情页的 task (默认) 页，并带上创建者 ID，方便权限判断
+				navigate(`/courseDetail?courseId=${res.data.course_id}&createId=${TeacherStore.teacherId}&schoolId=${TeacherStore.schoolId}`);
+			}
+		} catch (error) {
+			console.error('Failed to create course', error);
+		} finally {
+			setSubmitting(false);
+		}
 	};
+
+	const handleOpenCourseDetail = (course: any) => {
+		const cid = course.create_id || course.creator_id || '';
+		navigate(`/courseDetail?courseId=${course.course_id}&createId=${cid}&schoolId=${course.school_id}`);
+	};
+
+	const dataSource = useMemo(() => {
+		if (isTeacher) {
+			return mode === 'created' ? CourseStore.createdList : CourseStore.teachingList;
+		}
+		return CourseStore.studentList;
+	}, [isTeacher, mode, CourseStore.createdList, CourseStore.teachingList, CourseStore.studentList]);
 
 	return (
 		<>
@@ -113,7 +158,7 @@ const MyCoursesTabContent = observer(() => {
 			<List
 				className="course-list"
 				grid={{ gutter: 18, column: courseColumns }}
-				dataSource={CourseStore.list}
+				dataSource={dataSource}
 				loading={CourseStore.loading}
 				locale={{
 					emptyText: (
@@ -127,8 +172,9 @@ const MyCoursesTabContent = observer(() => {
 						<CourseCard 
 							title={course.name} 
 							imgSrc={toViewFileUrl(course.cover_img)}
-							teacher={course.teacher_names?.join(', ') || '未知教师'} 
-							onClick={() => handleOpenCourseDetail(course.course_id)} 
+							teacher={course.teacher_names?.map((t: any) => t.name || t).join(', ') || '未知教师'} 
+							status={course.status}
+							onClick={() => handleOpenCourseDetail(course)} 
 						/>
 					</List.Item>
 				)}
@@ -141,7 +187,7 @@ const MyCoursesTabContent = observer(() => {
 					onCancel={() => setIsModalOpen(false)}
 					onOk={() => form.submit()}
 					confirmLoading={submitting}
-					destroyOnClose
+					destroyOnHidden
 				>
 					<Form form={form} onFinish={handleJoin} layout="vertical">
 						<Form.Item
@@ -150,6 +196,27 @@ const MyCoursesTabContent = observer(() => {
 							rules={[{ required: true, message: '请输入邀请码' }]}
 						>
 							<Input placeholder="请输入课程邀请码" />
+						</Form.Item>
+					</Form>
+				</Modal>
+			)}
+
+			{isTeacher && (
+				<Modal
+					title="创建课程"
+					open={isCreateModalOpen}
+					onCancel={() => setIsCreateModalOpen(false)}
+					onOk={() => createForm.submit()}
+					confirmLoading={submitting}
+					destroyOnClose
+				>
+					<Form form={createForm} onFinish={handleCreate} layout="vertical">
+						<Form.Item
+							name="name"
+							label="课程名称"
+							rules={[{ required: true, message: '请输入课程名称' }]}
+						>
+							<Input placeholder="请输入待创建的课程名称" />
 						</Form.Item>
 					</Form>
 				</Modal>

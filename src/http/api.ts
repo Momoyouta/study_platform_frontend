@@ -70,11 +70,11 @@ export const updatePassword = (data: UpdatePasswordPayload) => {
     return http.put('/user/profile/updatePassword', data);
 }
 
-export const listTeacherCoursesUser = (params: { page: number, pageSize: number, teacher_id: string, school_id?: string }) => {
+export const listTeacherCoursesUser = (params: { page: number, pageSize: number, teacher_id: string, school_id?: string, keyword?: string }) => {
     return http.get('/course/listTeacherCoursesUser', { params });
 }
 
-export const listStudentCoursesUser = (params: { page: number, pageSize: number, student_id: string, school_id?: string }) => {
+export const listStudentCoursesUser = (params: { page: number, pageSize: number, student_id: string, school_id?: string, keyword?: string }) => {
     return http.get('/course/listStudentCoursesUser', { params });
 }
 
@@ -84,4 +84,183 @@ export const joinCourseByInviteCode = (data: { code: string }) => {
 
 export const leaveCourseStudent = (courseId: string) => {
     return http.post('/student/leaveCourse', { courseId });
+}
+
+export const getCourseLessonOutline = (id: string, source?: 'draft' | 'published') => {
+    return http.get(`/course/getCourseLessonOutline/${id}`, { params: { source } });
+}
+
+// ===== 分片上传 =====
+
+export const initChunkUpload = (data: {
+    fileHash: string;
+    fileName: string;
+    fileSize: number;
+    totalChunks: number;
+}) => {
+    return http.post('/file/upload/initChunk', data);
+}
+
+export const uploadChunk = (formData: FormData) => {
+    return http.post('/file/upload/chunk', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+}
+
+export const mergeChunks = (data: {
+    uploadId: string;
+    fileHash: string;
+    fileName: string;
+    scenario: string;
+    [key: string]: any;
+}) => {
+    return http.post('/file/upload/merge', data);
+}
+
+// ===== 分片上传 (用户端/带权限校验) =====
+
+export const initChunkUploadUser = (data: {
+    fileHash: string;
+    fileName: string;
+    fileSize: number;
+    totalChunks: number;
+    courseId: string;
+}) => {
+    return http.post('/file/chunk/user/init', data);
+}
+
+export const uploadChunkUser = (formData: FormData) => {
+    return http.post('/file/chunk/user/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+}
+
+export const getChunkProgressUser = (fileHash: string) => {
+    return http.get(`/file/chunk/user/progress/${fileHash}`);
+}
+
+export const mergeChunksUser = (data: {
+    uploadId: string;
+    fileHash: string;
+    fileName: string;
+    scenario: string;
+    courseId: string;
+    schoolId?: number;
+    homeworkId?: number;
+}) => {
+    return http.post('/file/chunk/user/merge', data);
+}
+
+
+// ===== 课程大纲（教师端） =====
+
+export const saveCourseDraft = (data: { course_id: string; draft_content: any }) => {
+    return http.post('/course/saveCourseDraft', data);
+}
+
+export const publishCourseOutline = (data: { course_id: string; draft_content: any }) => {
+    return http.post('/course/publishCourseOutline', data);
+}
+
+export const updateChapterTitleQuick = (data: {
+    course_id: string;
+    draft_content: any;
+    chapter: { chapter_id: string; title: string };
+}) => {
+    return http.put('/course/updateChapterTitleQuick', data);
+}
+
+export const updateLessonQuick = (data: {
+    course_id: string;
+    draft_content: any;
+    lesson: {
+        lesson_id: string;
+        chapter_id: string;
+        title: string;
+        description?: string;
+        resource_id?: string | null;
+        duration?: number;
+        sort_order?: number;
+    };
+}) => {
+    return http.put('/course/updateLessonQuick', data);
+}
+
+// ===== 课程任务描述（教师端） =====
+
+export const getCourseDescription = (id: string) => {
+    return http.get(`/course/getCourseDescription/${id}`);
+}
+
+export const updateCourseDescription = (data: { id: string; description: string }) => {
+    return http.put('/course/updateCourse', data);
+}
+
+// ===== 教学组管理（教师端） =====
+
+export const getCourseCreatorId = (id: string, teacher_id: string) => {
+    return http.get(`/course/getCourseCreatorId/${id}`, { params: { teacher_id } });
+}
+
+export const listTeachingGroup = (params: {
+    course_id: string;
+    page?: number;
+    pageSize?: number;
+    name?: string;
+}) => {
+    return http.get('/teacher/listTeachingGroup', { params });
+}
+
+export const getTeachingGroup = (id: string) => {
+    return http.get(`/teacher/getTeachingGroup/${id}`);
+}
+
+export const createTeachingGroup = (data: { course_id: string; name: string }) => {
+    return http.post('/teacher/createTeachingGroup', data);
+}
+
+export const updateTeachingGroup = (data: { teaching_group_id: string; name: string }) => {
+    return http.put('/teacher/updateTeachingGroup', data);
+}
+
+export const deleteTeachingGroup = (id: string) => {
+    return http.delete(`/teacher/deleteTeachingGroup/${id}`);
+}
+
+export const bindTeachingGroupTeachers = (data: {
+    course_id: string;
+    teaching_group_id: string;
+    teacher_ids: string[];
+}) => {
+    return http.put('/teacher/bindTeachingGroupTeachers', data);
+}
+
+export const createCourseInvite = (data: {
+    course_id: string;
+    teaching_group_id: string;
+    school_id?: string;
+    ttl?: number;
+}) => {
+    return http.post('/course/createInvite', data);
+}
+
+export const querySchoolTeacherByName = (params: {
+    school_id: string;
+    name: string;
+    page?: number;
+    pageSize?: number;
+}) => {
+    return http.get('/teacher/querySchoolTeacherByName', { params });
+}
+
+export const getMyTeachingGroupsInCourse = (courseId: string) => {
+    return http.get('/teacher/myGroups', { params: { course_id: courseId } });
+}
+
+export const listMyCreatedCourses = (params: { page: number, pageSize: number, keyword?: string, school_id?: string }) => {
+    return http.get('/teacher/myCreatedCourses', { params });
+}
+
+export const createCourse = (data: { name: string }) => {
+    return http.post('/teacher/createCourse', data);
 }

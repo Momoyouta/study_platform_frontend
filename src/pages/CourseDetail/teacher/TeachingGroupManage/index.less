@@ -1,0 +1,53 @@
+.teaching-group-manage {
+    .teaching-group-toolbar {
+        margin-bottom: 16px;
+
+        .search-form {
+            row-gap: 8px;
+        }
+    }
+
+    .teacher-name-cell {
+        word-break: break-word;
+    }
+
+    .inline-link-button {
+        padding: 0;
+        height: auto;
+    }
+
+    .invite-deadline-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .invite-deadline-text {
+            color: #595959;
+            font-size: 12px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+    }
+
+    .invite-modal-group-text {
+        margin-bottom: 12px;
+        color: #595959;
+    }
+}
+
+@media (max-width: 768px) {
+    .teaching-group-manage {
+        .teaching-group-toolbar {
+            .search-form {
+                .ant-form-item {
+                    margin-right: 0;
+                    margin-bottom: 8px;
+                }
+            }
+        }
+
+        .invite-deadline-cell {
+            flex-wrap: wrap;
+        }
+    }
+}

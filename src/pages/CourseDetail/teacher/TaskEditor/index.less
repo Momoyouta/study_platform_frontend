@@ -1,0 +1,53 @@
+.task-editor-container {
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed #f0f0f0;
+
+        .info-tips {
+            font-size: 14px;
+            color: #8c8c8c;
+            border-left: 3px solid #1890ff;
+            padding-left: 10px;
+        }
+    }
+
+    .md-editor {
+        border: 1px solid #d9d9d9;
+        border-radius: 6px;
+        transition: all 0.3s;
+
+        &:hover {
+            border-color: #40a9ff;
+        }
+
+        &.md-editor-focused {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+    }
+
+    .task-md-editor {
+        height: calc(100vh - 350px);
+        min-height: 500px;
+    }
+}
+
+.task-editor-loading,
+.task-editor-error {
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    padding: 40px;
+}

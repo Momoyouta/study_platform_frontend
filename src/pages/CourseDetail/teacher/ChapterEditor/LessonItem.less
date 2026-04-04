@@ -1,0 +1,47 @@
+.lesson-item-wrapper {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  position: relative; // 兼容 dnd 动态样式
+
+  .lesson-drag-handle {
+    cursor: grab;
+    color: #bfbfbf;
+    margin-right: 12px;
+    &:active { cursor: grabbing; }
+  }
+
+  .lesson-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    
+    .lesson-icon {
+      color: #8c8c8c;
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    .lesson-title {
+      color: #333;
+    }
+
+    &:hover {
+      .lesson-title {
+        color: #1677ff;
+      }
+    }
+  }
+
+  .lesson-extra {
+    margin-left: 16px;
+    
+    .lesson-mount-tag {
+      cursor: pointer;
+    }
+  }
+}
