@@ -22,21 +22,38 @@
 ```text
 E:\毕设\study_platform_frontend\
 ├── src/
-│   ├── assets/             # 静态资源 (图片、图标等)
-│   ├── components/         # 通用业务组件
-│   ├── config/             # 项目配置文件
-│   ├── env/                # 环境变量配置 (.env.dev, .env.prod)
-│   ├── http/               # 网络请求配置及封装
-│   ├── pages/              # 页面级组件 (Home, Login 等)
-│   ├── router/             # 路由配置
-│   ├── store/              # MobX 状态管理
-│   ├── theme/              # 主题样式及全局变量 (Less)
-│   ├── App.jsx             # 根组件
-│   └── main.jsx            # 入口文件
-├── public/                 # 公共静态资源
-├── openspec/               # 项目规范及任务管理
-├── package.json            # 项目依赖及脚本
-└── tsconfig.json           # TypeScript 配置
+│   ├── assets/                    # 静态资源（图片、图标等）
+│   ├── components/                # 通用业务组件（课程卡片、上传组件等）
+│   ├── config/                    # 项目配置
+│   ├── env/                       # 环境变量文件（.env.dev/.env.prod）
+│   ├── http/                      # 请求封装与 API 定义
+│   ├── layouts/                   # 布局组件（DashboardLayout）
+│   ├── pages/                     # 页面级组件
+│   │   ├── AccountManage/
+│   │   ├── Course/
+│   │   ├── CourseDetail/
+│   │   ├── Home/
+│   │   ├── Login/
+│   │   ├── PersonalStats/
+│   │   └── ResourcePlaza/
+│   ├── router/                    # 路由入口与路由表
+│   ├── store/                     # MobX 状态管理
+│   ├── theme/                     # 全局主题变量（Less）
+│   ├── type/                      # 类型定义与映射
+│   ├── utils/                     # 工具函数
+│   ├── App.jsx                    # 根组件
+│   └── main.jsx                   # 入口文件
+├── public/                        # 公共静态资源
+├── openspec/                      # OpenSpec 规范与变更记录
+│   ├── config.yaml
+│   ├── changes/
+│   │   └── archive/               # 已归档变更
+│   └── specs/                     # 当前规范文档
+├── deploy_frontend.ps1            # 前端部署脚本
+├── nginx.conf                     # Nginx 示例配置
+├── package.json                   # 项目依赖及脚本
+├── tsconfig.json                  # TypeScript 配置
+└── vite.config.js                 # Vite 配置
 ```
 
 ## 规范
