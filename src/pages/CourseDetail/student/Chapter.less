@@ -4,7 +4,112 @@
   min-height: calc(100vh - 150px);
   border-radius: 0;
   border: 1px solid #efefef;
+  flex: 1;
+  width: 100%;
+  transition: width 0.3s ease, flex 0.3s ease;
 }
+
+.chapter-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+
+  &.has-lesson {
+    .course-detail-chapter-card {
+      width: 320px;
+      flex: none;
+      /* 取消 flex: 1 使得其宽度受限于 320px */
+    }
+  }
+}
+
+.chapter-main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .lesson-header {
+    background: #fff;
+    padding: 16px 24px;
+    border-radius: 8px;
+    border: 1px solid #efefef;
+  }
+
+  .lesson-video-wrapper {
+    background: #111;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .lesson-video-player {
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    .no-video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .no-video-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .no-video-text {
+        font-size: 16px;
+        color: #666;
+      }
+    }
+  }
+
+  .lesson-desc-card {
+    border-radius: 8px;
+    border: 1px solid #efefef;
+
+    .lesson-desc-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      white-space: pre-wrap;
+    }
+  }
+}
+
+.ant-steps-item-title {
+  width: 100%;
+}
+
+.lesson-step-title {
+  cursor: pointer;
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  user-select: none;
+
+  &:hover {
+    background: #f0f5ff;
+    color: #1677ff;
+  }
+
+  &.selected {
+    background: #e6f7ff;
+    color: #1677ff;
+    font-weight: 600;
+  }
+}
+
 
 .course-detail-progress-row {
   display: flex;
@@ -135,35 +240,23 @@
   padding-bottom: 0;
 }
 
-/* 缩小 Steps 的节点小圆点 */
-.chapter-task-list .ant-steps-item-icon,
-.chapter-task-list .ant-steps-icon-dot {
-  width: 6px !important;
-  height: 6px !important;
-  line-height: 6px !important;
-  margin-top: 8px !important;
-  background: #d1d5db !important;
-  border-color: #d1d5db !important;
-}
-
-.chapter-task-list .ant-steps-item-tail {
-  top: 14px !important;
-  padding: 0 !important;
-  left: 3px !important;
-}
-
-.chapter-task-list .ant-steps-item-title {
-  color: #4b5563 !important;
-  line-height: 22px !important;
-  font-size: 14px !important;
-  padding-right: 0 !important;
-}
 
 
 
 @media (max-width: 900px) {
   .course-detail-chapter-card {
     min-height: auto;
+  }
+
+  .chapter-container {
+    flex-direction: column;
+
+    &.has-lesson {
+      .course-detail-chapter-card {
+        width: 100%;
+        min-height: auto;
+      }
+    }
   }
 
   .course-detail-progress-row {

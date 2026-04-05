@@ -268,3 +268,20 @@ export const listMyCreatedCourses = (params: { page: number, pageSize: number, k
 export const createCourse = (data: { name: string }) => {
     return http.post('/teacher/createCourse', data);
 }
+
+export const syncProgress = (data: {
+    courseId: string;
+    chapterId: string;
+    lessonId: string;
+    progress_percent: number;
+    schoolId?: string;
+}) => {
+    return http.post('/course/sync-progress', data);
+}
+
+export const getLearningProgress = (data: {
+    schoolId: string;
+    courseId: string;
+}) => {
+    return http.post('/course/getLearningProgress', data);
+}

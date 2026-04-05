@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { get } from '@/http/http';
-import { getCourseBaseInfo, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses } from "@/http/api";
+import { getCourseBaseInfo, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses, getLearningProgress } from "@/http/api";
 
 
 export class Course {
@@ -28,6 +28,7 @@ export class Course {
     description: string = '';
     chapters: any[] = [];
     teachingGroups: any[] = [];
+    learningProgress: any = null;
     loading: boolean = false;
 
     rootStore: any;
@@ -244,6 +245,42 @@ export class Course {
         }
     }
 
+    async fetchLearningProgress(params: { schoolId: string; courseId: string }) {
+        try {
+            const res: any = await getLearningProgress(params);
+            if (res?.code === 200) {
+                this.learningProgress = res.data;
+            }
+        } catch (error) {
+            console.error('Failed to fetch learning progress', error);
+        }
+    }
+
+    /**
+     * 自动更新课时进度（仅从 0 变 1 时才进行状态变更）
+     */
+    updateLessonProgress(data: { chapter_id: string; lesson_id: string; is_completed: number; progress_percent: number }) {
+        if (!this.learningProgress || !this.learningProgress.chapter_progress) return;
+
+        const { chapter_id, lesson_id, is_completed, progress_percent } = data;
+        const chapter = this.learningProgress.chapter_progress.find((c: any) => c.chapter_id === chapter_id);
+        if (!chapter || !chapter.lessons) return;
+
+        const lesson = chapter.lessons.find((l: any) => l.lesson_id === lesson_id);
+        if (!lesson) return;
+
+        // 仅当状态从 0 变为 1 时才更新 Store 中的计数值
+        if (lesson.is_completed === 0 && is_completed === 1) {
+            lesson.is_completed = 1;
+            lesson.progress_percent = progress_percent || 100;
+            
+            // 更新章节内的完成计数
+            chapter.completed_lessons = (chapter.completed_lessons || 0) + 1;
+            // 更新全课的总完成计数
+            this.learningProgress.total_completed = (this.learningProgress.total_completed || 0) + 1;
+        }
+    }
+
     reset() {
         this.list = [];
         this.sourceList = [];
@@ -262,6 +299,7 @@ export class Course {
         this.publishStatus = 0;
         this.description = '';
         this.chapters = [];
+        this.learningProgress = null;
         this.loading = false;
     }
 }
