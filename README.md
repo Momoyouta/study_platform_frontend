@@ -20,7 +20,7 @@
 ## 目录结构
 
 ```text
-E:\毕设\study_platform_frontend\
+\study_platform_frontend\
 ├── src/
 │   ├── assets/                    # 静态资源（图片、图标等）
 │   ├── components/                # 通用业务组件（课程卡片、上传组件等）

@@ -3,7 +3,8 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '@/store';
 import { Button, Drawer, Form, Input, Modal, Space, Tooltip, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import VideoChunkUpload from '@/components/VideoChunkUpload';
+import FileChunkUpload from '@/components/FileChunkUpload';
+import { SCENARIO_MAP } from '@/type/map.js';
 
 import './LessonEditorDrawer.less';
 
@@ -132,13 +133,15 @@ const LessonEditorDrawer = observer(({ visible, lesson, courseId, onClose, onCha
 
       <div className="lesson-editor-resource-section">
         <p className="resource-title">教学视频</p>
-        <VideoChunkUpload
-          onChange={handleChunkUploadSuccess}
-          scenario="temp_video"
+        <FileChunkUpload
+          onChange={(path) => handleChunkUploadSuccess(path)}
+          scenario={SCENARIO_MAP.TEMP_VIDEO}
           businessConfig={{ courseId, schoolId }}
           previewPath={resourceState?.video_path}
           buttonText="上传教学视频"
-          className="video-upload-component"
+          accept="video/*"
+          uploadType={2}
+          mountedLabel="视频已挂载"
         />
       </div>
     </Drawer>

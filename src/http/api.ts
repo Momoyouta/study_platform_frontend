@@ -152,8 +152,8 @@ export const mergeChunksUser = (data: {
     fileName: string;
     scenario: string;
     courseId: string;
-    schoolId?: number;
-    homeworkId?: number;
+    schoolId?: string;
+    homeworkId?: string;
 }) => {
     return http.post('/file/chunk/user/merge', data);
 }
@@ -291,4 +291,36 @@ export const getLearningProgress = (data: {
     courseId: string;
 }) => {
     return http.post('/course/getLearningProgress', data);
+}
+
+// ===== 课程资料管理 =====
+
+export const listCourseMaterials = (params: {
+    course_id: string;
+    file_name?: string;
+    page?: number;
+    pageSize?: number;
+}) => {
+    return http.get('/course/material/list', { params });
+}
+
+export const bindCourseMaterial = (data: {
+    course_id: string;
+    file_id: string;
+}) => {
+    return http.post('/course/material/bind', data);
+}
+
+export const updateCourseMaterial = (data: {
+    material_id: string;
+    file_name: string;
+}) => {
+    return http.post('/course/material/update', data);
+}
+
+export const deleteCourseMaterial = (data: {
+    material_id: string;
+    mode: number; // 1: 仅解绑, 2: 彻底删除
+}) => {
+    return http.post('/course/material/delete', data);
 }

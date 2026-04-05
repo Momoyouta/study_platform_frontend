@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 import { get } from '@/http/http';
-import { getCourseBaseInfo, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses, getLearningProgress } from "@/http/api";
+import { getCourseBaseInfo, getCourseLessonOutline, listStudentCoursesUser, listTeacherCoursesUser, listMyCreatedCourses, getLearningProgress, listCourseMaterials, bindCourseMaterial, updateCourseMaterial, deleteCourseMaterial } from "@/http/api";
 
 
 export class Course {
@@ -30,6 +30,11 @@ export class Course {
     teachingGroups: any[] = [];
     learningProgress: any = null;
     loading: boolean = false;
+
+    // 课程资料
+    materials: any[] = [];
+    materialsTotal: number = 0;
+    materialsLoading: boolean = false;
 
     rootStore: any;
 
@@ -281,6 +286,50 @@ export class Course {
         }
     }
 
+    async fetchMaterials(params: { courseId: string; fileName?: string; page?: number; pageSize?: number }) {
+        this.materialsLoading = true;
+        try {
+            const res: any = await listCourseMaterials({
+                course_id: params.courseId,
+                file_name: params.fileName,
+                page: params.page ?? 1,
+                pageSize: params.pageSize ?? 10,
+            });
+            if (res?.code === 200) {
+                this.materials = res.data?.list || [];
+                this.materialsTotal = res.data?.total || 0;
+            }
+        } catch (error) {
+            console.error('Failed to fetch materials', error);
+        } finally {
+            this.materialsLoading = false;
+        }
+    }
+
+    async bindMaterial(courseId: string, fileId: string) {
+        const res: any = await bindCourseMaterial({ course_id: courseId, file_id: fileId });
+        if (res?.code === 200) {
+            return res.data;
+        }
+        throw new Error(res?.msg || '绑定资料失败');
+    }
+
+    async updateMaterialName(materialId: string, fileName: string) {
+        const res: any = await updateCourseMaterial({ material_id: materialId, file_name: fileName });
+        if (res?.code === 200) {
+            return res.data;
+        }
+        throw new Error(res?.msg || '重命名失败');
+    }
+
+    async deleteMaterial(materialId: string, mode: number) {
+        const res: any = await deleteCourseMaterial({ material_id: materialId, mode });
+        if (res?.code === 200) {
+            return res.data;
+        }
+        throw new Error(res?.msg || '删除失败');
+    }
+
     reset() {
         this.list = [];
         this.sourceList = [];
@@ -301,6 +350,9 @@ export class Course {
         this.chapters = [];
         this.learningProgress = null;
         this.loading = false;
+        this.materials = [];
+        this.materialsTotal = 0;
+        this.materialsLoading = false;
     }
 }
 
