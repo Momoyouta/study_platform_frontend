@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useStore } from '@/store';
 import { Button, Drawer, Form, Input, Modal, Space, Tooltip, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import VideoChunkUpload from '@/components/VideoChunkUpload';
@@ -12,7 +14,9 @@ const buildResourceState = (lesson) => ({
   resource_name: lesson?.resource_name || '',
 });
 
-const LessonEditorDrawer = ({ visible, lesson, courseId, onClose, onChange, onSave, onImmediateSave }) => {
+const LessonEditorDrawer = observer(({ visible, lesson, courseId, onClose, onChange, onSave, onImmediateSave }) => {
+  const { UserStore } = useStore();
+  const schoolId = UserStore.schoolId;
   const [form] = Form.useForm();
   const [resourceState, setResourceState] = useState(() => buildResourceState(lesson));
   const canImmediateSave = !String(lesson?.lesson_id || '').startsWith('temp') && !String(lesson?.chapterId || '').startsWith('temp');
@@ -131,7 +135,7 @@ const LessonEditorDrawer = ({ visible, lesson, courseId, onClose, onChange, onSa
         <VideoChunkUpload
           onChange={handleChunkUploadSuccess}
           scenario="temp_video"
-          businessConfig={{ courseId }}
+          businessConfig={{ courseId, schoolId }}
           previewPath={resourceState?.video_path}
           buttonText="上传教学视频"
           className="video-upload-component"
@@ -139,6 +143,6 @@ const LessonEditorDrawer = ({ visible, lesson, courseId, onClose, onChange, onSa
       </div>
     </Drawer>
   );
-};
+});
 
 export default LessonEditorDrawer;

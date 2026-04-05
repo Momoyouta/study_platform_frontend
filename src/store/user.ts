@@ -34,6 +34,7 @@ const ROLE_STORAGE_KEY = 'user_role';
 const USER_INFO_STORAGE_KEY = 'user_info';
 const USER_ROLES_STORAGE_KEY = 'user_roles';
 const SCHOOL_NAME_STORAGE_KEY = 'school_name';
+const SCHOOL_ID_STORAGE_KEY = 'school_id';
 const LEGACY_USER_INFO_STORAGE_KEY = 'user_base_info';
 
 export class User {
@@ -63,6 +64,8 @@ export class User {
     roles: Role[] = [];
     // 学校名称
     schoolName: string = '';
+    // 学校 ID
+    schoolId: string = '';
     // 当前主角色（学生/老师）
     role: string | null = localStorage.getItem(ROLE_STORAGE_KEY);
     // 访问令牌
@@ -97,6 +100,7 @@ export class User {
         this.status = typeof userStorage?.status === 'number' ? userStorage.status : null;
         this.roles = this.parseStorage<Role[]>(USER_ROLES_STORAGE_KEY) || [];
         this.schoolName = localStorage.getItem(SCHOOL_NAME_STORAGE_KEY) || '';
+        this.schoolId = localStorage.getItem(SCHOOL_ID_STORAGE_KEY) || '';
     }
 
     // 安全解析本地缓存，解析失败时自动清理脏数据
@@ -210,6 +214,12 @@ export class User {
         localStorage.setItem(SCHOOL_NAME_STORAGE_KEY, this.schoolName);
     }
 
+    // 更新学校 ID 并持久化
+    setSchoolId(schoolId: string) {
+        this.schoolId = schoolId || '';
+        localStorage.setItem(SCHOOL_ID_STORAGE_KEY, this.schoolId);
+    }
+
     // 更新当前主角色并持久化
     setRole(role: string | null) {
         this.role = role;
@@ -252,6 +262,8 @@ export class User {
         this.setRole(primaryRole);
 
         const { studentInfo, teacherInfo } = this.resolveRoleProfiles(profile);
+        const schoolId = teacherInfo?.school_id || studentInfo?.school_id || '';
+        this.setSchoolId(schoolId);
 
         if (primaryRole === ROLE_MAP.STUDENT && studentInfo) {
             this.rootStore.StudentStore.setFromDto(studentInfo);
@@ -287,6 +299,7 @@ export class User {
         this.clearUserFields();
         this.roles = [];
         this.schoolName = '';
+        this.schoolId = '';
         this.role = null;
 
         localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -294,6 +307,7 @@ export class User {
         localStorage.removeItem(USER_INFO_STORAGE_KEY);
         localStorage.removeItem(USER_ROLES_STORAGE_KEY);
         localStorage.removeItem(SCHOOL_NAME_STORAGE_KEY);
+        localStorage.removeItem(SCHOOL_ID_STORAGE_KEY);
         localStorage.removeItem(LEGACY_USER_INFO_STORAGE_KEY);
 
         this.rootStore.StudentStore.clearProfile();

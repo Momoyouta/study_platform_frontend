@@ -107,6 +107,15 @@ const Chapter = observer(() => {
         lastProgressRef.current = 0;
     }, [selectedLesson?.lesson_id]);
 
+    const [activeKeys, setActiveKeys] = useState<string[]>([]);
+
+    // 当章节列表加载后，默认展开所有章节
+    useEffect(() => {
+        if (chapters.length > 0 && activeKeys.length === 0) {
+            setActiveKeys(chapters.map((c: any) => c.chapter_id));
+        }
+    }, [chapters, activeKeys.length]);
+
     // 使用 useMemo 缓存由于 chapters 数据较多带来的不必要渲染损耗
     const chapterPanelItems = useMemo(() => {
         return chapters.map((chapter: any, index: number) => {
@@ -161,7 +170,7 @@ const Chapter = observer(() => {
                 ),
             };
         });
-    }, [chapters, selectedLesson, handleLessonSelect]);
+    }, [chapters, selectedLesson, handleLessonSelect, CourseStore.learningProgress]);
 
     return (
         <div className={`chapter-container ${selectedLesson ? 'has-lesson' : ''}`}>
@@ -236,7 +245,8 @@ const Chapter = observer(() => {
                 <Collapse
                     className="course-detail-chapter-collapse"
                     bordered={false}
-                    defaultActiveKey={chapters.length > 0 ? [chapters[0].chapter_id] : []}
+                    activeKey={activeKeys}
+                    onChange={(keys) => setActiveKeys(keys as string[])}
                     expandIconPlacement="end"
                     expandIcon={({ isActive }) => (
                         <UpOutlined className={`chapter-expand-icon${isActive ? '' : ' chapter-expand-icon-collapsed'}`} />

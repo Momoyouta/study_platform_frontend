@@ -8,7 +8,7 @@ import {
     FolderOpenOutlined
 } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { initChunkUploadUser, uploadChunkUser, mergeChunksUser } from '@/http/api';
+import { initChunkUploadUser, uploadChunkUser, mergeChunksUser, ChunkUploadType } from '@/http/api';
 import HashWorker from './hash.worker?worker';
 import './index.less';
 
@@ -148,7 +148,9 @@ const VideoChunkUpload = forwardRef<VideoChunkUploadHandle, VideoChunkUploadProp
                 fileName: file.name,
                 fileSize: file.size,
                 totalChunks,
-                courseId: String(businessConfig.courseId || '')
+                courseId: String(businessConfig.courseId || ''),
+                schoolId: businessConfig.schoolId,
+                type: ChunkUploadType.VIDEO
             });
 
             // 检查是否秒传成功

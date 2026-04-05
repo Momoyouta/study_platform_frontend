@@ -117,6 +117,11 @@ export const mergeChunks = (data: {
     return http.post('/file/upload/merge', data);
 }
 
+export enum ChunkUploadType {
+    VIDEO = 1,
+    NORMAL = 2,
+}
+
 // ===== 分片上传 (用户端/带权限校验) =====
 
 export const initChunkUploadUser = (data: {
@@ -125,6 +130,8 @@ export const initChunkUploadUser = (data: {
     fileSize: number;
     totalChunks: number;
     courseId: string;
+    schoolId?: string | number;
+    type: ChunkUploadType;
 }) => {
     return http.post('/file/chunk/user/init', data);
 }
