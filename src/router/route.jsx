@@ -49,7 +49,7 @@ const routes = [
             },
             {
                 path: 'resource-plaza',
-                component: lazy(() => import('../pages/ResourcePlaza/index.jsx')),
+                component: lazy(() => import('../pages/ResourcePlaza/index.tsx')),
             },
             {
                 path: 'stats',

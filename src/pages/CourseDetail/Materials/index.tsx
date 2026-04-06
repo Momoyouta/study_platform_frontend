@@ -30,6 +30,7 @@ import {
 } from '@ant-design/icons';
 import FileChunkUpload from '@/components/FileChunkUpload';
 import { ChunkUploadType } from '@/http/api';
+import { downloadFile } from '@/utils/download';
 import type { ColumnType } from 'antd/es/table';
 import Title from 'antd/es/typography/Title';
 import './index.less';
@@ -41,7 +42,7 @@ const { Text } = Typography;
 const getFileTypeInfo = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
     const displayText = ext ? ext.toUpperCase() : 'Unknown';
-    
+
     let icon = <FileUnknownOutlined />;
     switch (ext) {
         case 'pdf':
@@ -66,28 +67,30 @@ const getFileTypeInfo = (fileName: string) => {
             icon = <FileWordOutlined />;
             break;
     }
-    
+
     return { text: displayText, icon };
 };
 
-const formatDate = (timestamp: string) => {
-    if (!timestamp) return '-';
-    let ts = Number(timestamp);
-    if (isNaN(ts)) return timestamp;
-    
-    // 如果是 10 位时间戳（秒），转换为毫秒
-    if (timestamp.toString().length === 10) {
-        ts *= 1000;
-    }
-    
-    const date = new Date(ts);
-    if (isNaN(date.getTime())) return timestamp;
-    
+const formatDate = (val: string) => {
+    if (!val) return '-';
+
+    const date = new Date(val);
+    if (isNaN(date.getTime())) return val;
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
+};
+
+const formatFileSize = (bytes: any) => {
+    const size = Number(bytes);
+    if (isNaN(size) || size === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(size) / Math.log(k));
+    return parseFloat((size / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // ── 组件 ──────────────────────────────────────────────────────────────────────
@@ -150,7 +153,7 @@ const Materials = observer(() => {
 
     const handleUploadSuccess = async (_path: string, fileId?: string) => {
         if (!fileId) return;
-        
+
         setBindingFileId(fileId);
         setUploading(true);
         try {
@@ -176,13 +179,7 @@ const Materials = observer(() => {
     };
 
     // ── 下载 ───────────────────────────────────────────────────────────────
-    const handleDownload = (record: any) => {
-        if (!record.file_id) {
-            message.warning('暂无可下载的文件');
-            return;
-        }
-        window.open(`/file/download/${record.file_id}`, '_blank');
-    };
+    // 已改为使用 <a> 标签直链下载，此处函数保留空实现或删除
 
     // ── 重命名 ─────────────────────────────────────────────────────────────
     // 存储当前重命名的文件名后缀
@@ -190,17 +187,17 @@ const Materials = observer(() => {
 
     const handleRenameOpen = (record: any) => {
         setRenamingRecord(record);
-        const fileName = record.file_name || '';
+        const fileName = record.fileName || '';
         const lastDotIndex = fileName.lastIndexOf('.');
-        
+
         let namePrefix = fileName;
         let extension = '';
-        
+
         if (lastDotIndex !== -1) {
             namePrefix = fileName.substring(0, lastDotIndex);
             extension = fileName.substring(lastDotIndex);
         }
-        
+
         setFileExtension(extension);
         renameForm.setFieldsValue({ file_prefix: namePrefix });
         setRenameVisible(true);
@@ -267,8 +264,8 @@ const Materials = observer(() => {
     const columns: ColumnType<any>[] = [
         {
             title: '文件名',
-            dataIndex: 'file_name',
-            key: 'file_name',
+            dataIndex: 'fileName',
+            key: 'fileName',
             render: (text: string) => <Text strong>{text}</Text>,
         },
         {
@@ -276,7 +273,7 @@ const Materials = observer(() => {
             key: 'fileType',
             width: 100,
             render: (_: any, record: any) => {
-                const info = getFileTypeInfo(record.file_name || '');
+                const info = getFileTypeInfo(record.fileName || '');
                 return (
                     <Space>
                         <span style={{ fontSize: 18, color: '#595959' }}>{info.icon}</span>
@@ -286,16 +283,23 @@ const Materials = observer(() => {
             },
         },
         {
+            title: '大小',
+            dataIndex: 'fileSize',
+            key: 'fileSize',
+            width: 100,
+            render: (size: any) => <Text type="secondary">{formatFileSize(size)}</Text>,
+        },
+        {
             title: '上传者',
-            dataIndex: 'uploader_name',
-            key: 'uploader_name',
+            dataIndex: 'creatorName',
+            key: 'creatorName',
             width: 120,
             render: (name: string) => <Text type="secondary">{name || '-'}</Text>,
         },
         {
             title: '上传日期',
-            dataIndex: 'create_time',
-            key: 'create_time',
+            dataIndex: 'createTime',
+            key: 'createTime',
             width: 120,
             render: (ts: string) => <Text type="secondary">{formatDate(ts)}</Text>,
         },
@@ -303,23 +307,33 @@ const Materials = observer(() => {
             title: '操作',
             key: 'action',
             width: isStudent ? 80 : 140,
-            render: (_: any, record: any) => (
-                <Space size="small" className="material-actions">
-                    <Tooltip title="下载">
-                        <Button type="text" icon={<DownloadOutlined />} onClick={() => handleDownload(record)} />
-                    </Tooltip>
-                    {!isStudent && (
-                        <>
-                            <Tooltip title="重命名">
-                                <Button type="text" icon={<EditOutlined />} onClick={() => handleRenameOpen(record)} />
-                            </Tooltip>
-                            <Tooltip title="删除">
-                                <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
-                            </Tooltip>
-                        </>
-                    )}
-                </Space>
-            ),
+            render: (_: any, record: any) => {
+                return (
+                    <Space size="small" className="material-actions">
+                        <Tooltip title="下载">
+                            <Button
+                                type="text"
+                                icon={<DownloadOutlined />}
+                                onClick={() => downloadFile({
+                                    schoolId: record.schoolId,
+                                    fileHash: record.fileHash,
+                                    fileName: record.fileName
+                                })}
+                            />
+                        </Tooltip>
+                        {!isStudent && (
+                            <>
+                                <Tooltip title="重命名">
+                                    <Button type="text" icon={<EditOutlined />} onClick={() => handleRenameOpen(record)} />
+                                </Tooltip>
+                                <Tooltip title="删除">
+                                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
+                                </Tooltip>
+                            </>
+                        )}
+                    </Space>
+                );
+            },
         },
     ];
 
@@ -332,12 +346,12 @@ const Materials = observer(() => {
             <div className="materials-header">
                 <Input
                     suffix={
-                        <SearchOutlined 
-                            style={{ 
-                                color: searchText ? '#1890ff' : 'rgba(0,0,0,.45)', 
+                        <SearchOutlined
+                            style={{
+                                color: searchText ? '#1890ff' : 'rgba(0,0,0,.45)',
                                 cursor: 'pointer',
                                 transition: 'color 0.3s'
-                            }} 
+                            }}
                             onClick={handleSearch}
                         />
                     }
@@ -424,8 +438,8 @@ const Materials = observer(() => {
                         label="新文件名"
                         rules={[{ required: true, message: '请输入文件名' }]}
                     >
-                        <Input 
-                            placeholder="请输入新的文件名" 
+                        <Input
+                            placeholder="请输入新的文件名"
                             addonAfter={<Text type="secondary">{fileExtension}</Text>}
                         />
                     </Form.Item>

@@ -1,0 +1,56 @@
+.resource-plaza-container {
+    background: transparent;
+    border-radius: 8px;
+    height: 100%;
+    
+    .plaza-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        background-color: #fff;
+        padding: 24px 24px;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+
+        .ant-typography {
+            margin-bottom: 0 !important;
+        }
+
+        .ant-input-affix-wrapper {
+            background-color: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            .ant-input {
+                background-color: transparent;
+            }
+        }
+    }
+
+    .plaza-table-wrapper {
+        position: relative;
+        background-color: #fff;
+        padding: 0 24px 24px 24px;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    .plaza-table {
+        .ant-table-thead > tr > th {
+            background: transparent;
+            color: #8c8c8c;
+            font-weight: normal;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px;
+        }
+
+        .item-actions {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .ant-table-row:hover .item-actions {
+            opacity: 1;
+        }
+    }
+}

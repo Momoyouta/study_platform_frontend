@@ -324,3 +324,14 @@ export const deleteCourseMaterial = (data: {
 }) => {
     return http.post('/course/material/delete', data);
 }
+
+// ===== 文件管理 =====
+
+export const queryFiles = (params: {
+    page?: number;
+    pageSize?: number;
+    filename?: string;
+    schoolId: string | number;
+}) => {
+    return http.get('/file/query', { params });
+}
