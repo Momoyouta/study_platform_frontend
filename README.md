@@ -62,6 +62,7 @@
 - 安装库必须使用pnpm
 - 全局less变量：src/theme/variables.less
 - api调用使用.then链，非必要不使用try catch
+- 接口调用发生异常时，catch 中不要再调用 message.error/message.warning/message.info/message.success；错误提示统一由 src/http/http.js 的响应拦截器处理
 - 使用antd组件库
 ## 快速开始
 

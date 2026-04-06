@@ -108,7 +108,6 @@ const BasicProfileTabContent = observer(() => {
             if (error?.errorFields) {
                 return;
             }
-            message.error(error?.message || '更新性别失败，请稍后重试');
         } finally {
             setSexLoading(false);
         }
@@ -128,7 +127,6 @@ const BasicProfileTabContent = observer(() => {
             if (error?.errorFields) {
                 return;
             }
-            message.error(error?.message || '发送验证码失败，请稍后重试');
         } finally {
             setSendingCode(false);
         }
@@ -151,7 +149,6 @@ const BasicProfileTabContent = observer(() => {
             if (error?.errorFields) {
                 return;
             }
-            message.error(error?.message || '更新手机号失败，请稍后重试');
         } finally {
             setUpdatingPhone(false);
         }

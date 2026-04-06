@@ -134,7 +134,6 @@ const TempImageUpload = ({
             message.success(successMessage);
             onSuccess?.(uploadRes as any);
         } catch (error: any) {
-            message.error(error?.message || '图片上传失败，请稍后重试');
             onError?.(error as any);
         } finally {
             setUploading(false);

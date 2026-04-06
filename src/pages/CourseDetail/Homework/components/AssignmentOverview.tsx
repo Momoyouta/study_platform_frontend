@@ -284,7 +284,6 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
                 setOverview(buildFallbackOverview(assignmentId, fallbackItem));
                 setStatistics(null);
                 setSubmissionsCount(0);
-                message.warning('概览数据拉取失败，已展示最小回退数据');
             } finally {
                 setLoading(false);
             }

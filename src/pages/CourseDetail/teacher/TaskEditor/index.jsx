@@ -54,7 +54,6 @@ const TaskEditor = ({ courseId }) => {
             })
             .catch((err) => {
                 console.error('Save description failed:', err);
-                message.error('保存接口异常');
             })
             .finally(() => {
                 setSaving(false);

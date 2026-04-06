@@ -268,8 +268,8 @@ const HomeworkDetail = observer(() => {
 
             callback([imageUrl]);
             message.success('作答图片上传成功');
-        } catch (_error) {
-            message.warning('作答图片上传失败，请稍后重试');
+        } catch (error) {
+            console.error('Upload student answer image failed:', error);
         }
     };
 

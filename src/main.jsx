@@ -5,7 +5,6 @@ import router from './router/index.jsx'
 import './index.css'
 import { jwtAuth } from './http/api.ts'
 import Store from './store/index.ts'
-import { message } from 'antd';
 const init = async () => {
   const token = localStorage.getItem('access_token');
   const pathname = window.location.pathname;
@@ -40,7 +39,6 @@ const init = async () => {
       }
     } catch (error) {
       // 校验失败：清除 token
-      message.error('登录已过期，请重新登录');
       Store.UserStore.clearAuth();
       // 如果不在公开页则跳转到登录页
       if (!isPublicPage) {

@@ -1,125 +1,14 @@
 import http from "./http.js";
-
-type UpdateBasicPayload = {
-    sex: boolean;
-};
-
-type UpdatePhonePayload = {
-    newPhone: string;
-    code?: string;
-};
-
-type UpdateAvatarPayload = {
-    tempAvatarPath: string;
-};
-
-type UpdatePasswordPayload = {
-    oldPassword: string;
-    newPassword: string;
-};
-
-export type AssignmentQuestionTypeCode = 1 | 2 | 3 | 4 | 5;
-
-export type TeacherAssignmentQuestionPayload = {
-    question_id?: string;
-    type: AssignmentQuestionTypeCode;
-    score: number;
-    content: Record<string, any>;
-    standard_answer: Record<string, any>;
-    sort_order: number;
-    analysis?: Record<string, any>;
-};
-
-export type TeacherAssignmentSaveRequest = {
-    assignment_id?: string;
-    course_id: string;
-    teaching_group_id?: string;
-    title: string;
-    description?: string;
-    start_time: string;
-    deadline: string;
-    questions: TeacherAssignmentQuestionPayload[];
-};
-
-export type TeacherAssignmentUpdateRequest = {
-    assignment_id: string;
-    title: string;
-};
-
-export type TeacherAssignmentListItemDto = {
-    id: string;
-    title: string;
-    status: number;
-    start_time: string;
-    deadline: string;
-    question_count: number;
-};
-
-export type TeacherAssignmentDetailDto = {
-    id: string;
-    course_id: string;
-    title: string;
-    status: number;
-    start_time: string;
-    deadline: string;
-    questions: Array<Record<string, any>>;
-};
-
-export type TeacherAssignmentStatisticsDto = {
-    total_students: number;
-    submitted_count: number;
-    graded_count: number;
-    questions: Array<{
-        question_id: string;
-        type: number;
-        correct_rate: number | null;
-        score_rate: number;
-    }>;
-};
-
-export type StudentAssignmentListItemDto = {
-    id: string;
-    title: string;
-    start_time: string;
-    deadline: string;
-    submission_status: number | null;
-};
-
-export type StudentAssignmentDetailQuestionDto = {
-    id: string;
-    type: number;
-    score: number;
-    content: Record<string, any>;
-    sort_order: number;
-    student_answer: Record<string, any> | null;
-};
-
-export type StudentAssignmentDetailDto = {
-    assignment_id: string;
-    title: string;
-    start_time: string;
-    deadline: string;
-    status: 0 | 1 | 2;
-    questions: StudentAssignmentDetailQuestionDto[];
-};
-
-export type StudentAssignmentAnswerPayload = {
-    question_id: string;
-    student_answer: Record<string, any>;
-};
-
-export type StudentAssignmentResultDto = {
-    total_score: string;
-    teacher_comment?: string;
-    details: Array<{
-        question_id: string;
-        score_earned: string;
-        is_correct: number | null;
-        teacher_comment?: string;
-        standard_answer: Record<string, any>;
-        analysis: Record<string, any>;
-    }>;
-};
+import {
+    ChunkUploadType,
+    type StudentAssignmentAnswerPayload,
+    type TeacherAssignmentSaveRequest,
+    type TeacherAssignmentUpdateRequest,
+    type UpdateAvatarPayload,
+    type UpdateBasicPayload,
+    type UpdatePasswordPayload,
+    type UpdatePhonePayload,
+} from "@/type/api";
 
 export const login = (account: string, pwd: string) => {
     return http.post('/auth/login', {
@@ -218,11 +107,6 @@ export const mergeChunks = (data: {
     [key: string]: any;
 }) => {
     return http.post('/file/upload/merge', data);
-}
-
-export enum ChunkUploadType {
-    VIDEO = 1,
-    NORMAL = 2,
 }
 
 // ===== 分片上传 (用户端/带权限校验) =====

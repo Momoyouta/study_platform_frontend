@@ -115,7 +115,6 @@ const CourseOutline = ({ courseId }) => {
       setOutlineDraft(normalized);
     } catch (error) {
       console.error('Load course outline failed:', error);
-      message.error('获取课程大纲失败');
     } finally {
       setLoadingOutline(false);
     }
@@ -206,7 +205,6 @@ const CourseOutline = ({ courseId }) => {
       })
       .catch((error) => {
         console.error('Save course draft failed:', error);
-        message.error(error?.message || '保存草稿失败');
       })
       .finally(() => {
         setSavingDraft(false);
@@ -236,8 +234,6 @@ const CourseOutline = ({ courseId }) => {
       message.success('已导入已发布大纲');
     } catch (error) {
       console.error('Import published outline failed:', error);
-
-      message.error(error?.message || '导入已发布大纲失败');
     } finally {
       setImportingPublished(false);
     }
@@ -293,7 +289,6 @@ const CourseOutline = ({ courseId }) => {
           message.success('大纲已发布');
         } catch (error) {
           console.error('Publish course outline failed:', error);
-          message.error(error?.message || '发布大纲失败');
           throw error;
         } finally {
           setPublishing(false);
@@ -419,7 +414,6 @@ const CourseOutline = ({ courseId }) => {
       message.success('章节标题已保存');
     } catch (error) {
       console.error('Update chapter title failed:', error);
-      message.error(error?.message || '章节标题保存失败');
     } finally {
       setSavingChapterId('');
     }
@@ -516,7 +510,6 @@ const CourseOutline = ({ courseId }) => {
       message.success('课时已更新');
     } catch (error) {
       console.error('Update lesson failed:', error);
-      message.error(error?.message || '课时保存失败');
       throw error;
     }
   };

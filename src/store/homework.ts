@@ -1,12 +1,14 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { ROLE_MAP } from "@/type/map.js";
-import { toViewFileUrl } from "@/utils/fileUrl";
 import {
     type AssignmentQuestionTypeCode,
     type TeacherAssignmentQuestionPayload,
     type StudentAssignmentAnswerPayload,
     type StudentAssignmentResultDto,
     type TeacherAssignmentSaveRequest,
+} from "@/type/api";
+import { toViewFileUrl } from "@/utils/fileUrl";
+import {
     listStudentAssignments,
     listTeacherAssignments,
     getStudentAssignmentDetail,

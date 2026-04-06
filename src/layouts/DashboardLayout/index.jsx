@@ -91,7 +91,6 @@ const DashboardLayout = observer(() => {
       }
     } catch (error) {
       console.error(error);
-      message.error('更新失败');
     } finally {
       setSubmitting(false);
     }
