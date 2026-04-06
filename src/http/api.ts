@@ -18,6 +18,108 @@ type UpdatePasswordPayload = {
     newPassword: string;
 };
 
+export type AssignmentQuestionTypeCode = 1 | 2 | 3 | 4 | 5;
+
+export type TeacherAssignmentQuestionPayload = {
+    question_id?: string;
+    type: AssignmentQuestionTypeCode;
+    score: number;
+    content: Record<string, any>;
+    standard_answer: Record<string, any>;
+    sort_order: number;
+    analysis?: Record<string, any>;
+};
+
+export type TeacherAssignmentSaveRequest = {
+    assignment_id?: string;
+    course_id: string;
+    teaching_group_id?: string;
+    title: string;
+    description?: string;
+    start_time: string;
+    deadline: string;
+    questions: TeacherAssignmentQuestionPayload[];
+};
+
+export type TeacherAssignmentUpdateRequest = {
+    assignment_id: string;
+    title: string;
+};
+
+export type TeacherAssignmentListItemDto = {
+    id: string;
+    title: string;
+    status: number;
+    start_time: string;
+    deadline: string;
+    question_count: number;
+};
+
+export type TeacherAssignmentDetailDto = {
+    id: string;
+    course_id: string;
+    title: string;
+    status: number;
+    start_time: string;
+    deadline: string;
+    questions: Array<Record<string, any>>;
+};
+
+export type TeacherAssignmentStatisticsDto = {
+    total_students: number;
+    submitted_count: number;
+    graded_count: number;
+    questions: Array<{
+        question_id: string;
+        type: number;
+        correct_rate: number | null;
+        score_rate: number;
+    }>;
+};
+
+export type StudentAssignmentListItemDto = {
+    id: string;
+    title: string;
+    start_time: string;
+    deadline: string;
+    submission_status: number | null;
+};
+
+export type StudentAssignmentDetailQuestionDto = {
+    id: string;
+    type: number;
+    score: number;
+    content: Record<string, any>;
+    sort_order: number;
+    student_answer: Record<string, any> | null;
+};
+
+export type StudentAssignmentDetailDto = {
+    assignment_id: string;
+    title: string;
+    start_time: string;
+    deadline: string;
+    questions: StudentAssignmentDetailQuestionDto[];
+};
+
+export type StudentAssignmentAnswerPayload = {
+    question_id: string;
+    student_answer: Record<string, any>;
+};
+
+export type StudentAssignmentResultDto = {
+    total_score: string;
+    teacher_comment?: string;
+    details: Array<{
+        question_id: string;
+        score_earned: string;
+        is_correct: number | null;
+        teacher_comment?: string;
+        standard_answer: Record<string, any>;
+        analysis: Record<string, any>;
+    }>;
+};
+
 export const login = (account: string, pwd: string) => {
     return http.post('/auth/login', {
         account,
@@ -291,6 +393,133 @@ export const getLearningProgress = (data: {
     courseId: string;
 }) => {
     return http.post('/course/getLearningProgress', data);
+}
+
+// ===== 教师端作业概览 =====
+
+export const getTeacherAssignmentOverview = (data: { assignment_id: string }) => {
+    return http.post('/teacher/assignment/overview', data);
+}
+
+// ===== 作业管理（教师端） =====
+
+export const saveTeacherAssignment = (data: TeacherAssignmentSaveRequest) => {
+    return http.post('/teacher/assignment/save', data);
+}
+
+export const updateTeacherAssignment = (data: TeacherAssignmentUpdateRequest) => {
+    return http.post('/teacher/assignment/update', data);
+}
+
+export const publishTeacherAssignment = (data: { assignment_id: string }) => {
+    return http.post('/teacher/assignment/publish', data);
+}
+
+export const extendTeacherAssignmentDeadline = (data: {
+    assignment_id: string;
+    start_time: string;
+    deadline: string;
+}) => {
+    return http.post('/teacher/assignment/deadline/extend', data);
+}
+
+export const listTeacherAssignments = (data: {
+    course_id: string;
+    teaching_group_id?: string;
+}) => {
+    return http.post('/teacher/assignment/list', data);
+}
+
+export const getTeacherAssignmentDetail = (data: { assignment_id: string }) => {
+    return http.post('/teacher/assignment/detail', data);
+}
+
+export const getTeacherAssignmentStatistics = (data: {
+    assignment_id: string;
+    teaching_group_id?: string;
+}) => {
+    return http.post('/teacher/assignment/statistics', data);
+}
+
+export const listTeacherAssignmentSubmissions = (data: {
+    assignment_id: string;
+    teaching_group_id?: string;
+}) => {
+    return http.post('/teacher/assignment/submissions', data);
+}
+
+export const gradeTeacherAssignmentSubmission = (data: {
+    submission_id: string;
+    question_id: string;
+    score: number;
+    teacher_comment?: string;
+    overall_comment?: string;
+}) => {
+    return http.post('/teacher/assignment/grade', data);
+}
+
+export const uploadTeacherAssignmentQuestionImage = (data: {
+    file: File;
+    question_id: string;
+    course_id: string;
+    resource_type: 1 | 2;
+}) => {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('question_id', data.question_id);
+    formData.append('course_id', data.course_id);
+    formData.append('resource_type', String(data.resource_type));
+
+    return http.post('/teacher/assignment/question/image/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+}
+
+// ===== 作业管理（学生端） =====
+
+export const listStudentAssignments = (data: { course_id: string }) => {
+    return http.post('/student/assignment/list', data);
+}
+
+export const getStudentAssignmentDetail = (data: { assignment_id: string }) => {
+    return http.post('/student/assignment/detail', data);
+}
+
+export const saveStudentAssignmentDraft = (data: {
+    assignment_id: string;
+    answers: StudentAssignmentAnswerPayload[];
+}) => {
+    return http.post('/student/assignment/draft/save', data);
+}
+
+export const submitStudentAssignment = (data: {
+    assignment_id: string;
+    answers: StudentAssignmentAnswerPayload[];
+}) => {
+    return http.post('/student/assignment/submit', data);
+}
+
+export const getStudentAssignmentResult = (data: { assignment_id: string }) => {
+    return http.post('/student/assignment/result', data);
+}
+
+export const uploadStudentAssignmentAnswerImage = (data: {
+    file: File;
+    assignment_id: string;
+    question_id: string;
+}) => {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('assignment_id', data.assignment_id);
+    formData.append('question_id', data.question_id);
+
+    return http.post('/student/assignment/answer/image/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
 }
 
 // ===== 课程资料管理 =====

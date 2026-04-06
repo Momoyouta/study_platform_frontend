@@ -3,6 +3,7 @@ import { User } from "./user";
 import { Student } from "./student";
 import { Teacher } from "./teacher";
 import { Course } from "./course";
+import { Homework } from "./homework";
 
 class RootStore {
     // 学生信息 store
@@ -13,6 +14,8 @@ class RootStore {
     UserStore: User;
     // 课程管理 store
     CourseStore: Course;
+    // 作业管理 store
+    HomeworkStore: Homework;
 
     // 初始化所有 store，并注入跨 store 依赖
     constructor() {
@@ -20,6 +23,7 @@ class RootStore {
         this.TeacherStore = new Teacher();
         this.UserStore = new User(this);
         this.CourseStore = new Course(this);
+        this.HomeworkStore = new Homework();
     }
 }
 

@@ -12,6 +12,7 @@ import StudentStudyRecord from './student/StudyRecord';
 
 // 公共组件 (根据角色内部判断)
 import Materials from './Materials';
+import Homework from './Homework';
 
 // 教师端分发容器
 import TeacherTask from './teacher/Task';
@@ -85,7 +86,10 @@ const CourseDetail = observer(() => {
             if (sectionKey === 'materials') {
                 return <Materials />;
             }
-            // 其余路由（homework 等）暂用占位卡片
+            if (sectionKey === 'homework') {
+                return <Homework courseId={courseId} />;
+            }
+            // 其余路由暂用占位卡片
             return (
                 <Card className="course-detail-card" bordered={false}>
                     <Title className="course-detail-title" level={3}>{sectionLabel}</Title>
@@ -112,6 +116,9 @@ const CourseDetail = observer(() => {
 
         if (sectionKey === 'materials') {
             return <Materials />;
+        }
+        if (sectionKey === 'homework') {
+            return <Homework courseId={courseId} />;
         }
 
         return (

@@ -12,6 +12,10 @@ const routes = [
         component: lazy(() => import('../pages/Login/applySchool.tsx')),
     },
     {
+        path: '/homeworkDetail',
+        component: lazy(() => import('../pages/HomeworkDetail/index.tsx')),
+    },
+    {
         path: '/',
         component: lazy(() => import('../layouts/DashboardLayout/index.jsx')),
         children: [

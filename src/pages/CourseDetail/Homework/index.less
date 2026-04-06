@@ -1,0 +1,281 @@
+@import "../../../theme/variables.less";
+
+.homework-list-container {
+    padding: 24px;
+    background: #fff;
+    min-height: 100%;
+
+    .homework-page-title {
+        margin-bottom: 24px;
+        font-weight: 600;
+    }
+
+    .homework-filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+
+        .filter-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+
+            .filter-label {
+                color: #8c8c8c;
+            }
+
+            .ant-radio-group {
+                display: flex;
+                gap: 16px;
+                .ant-radio-wrapper {
+                    margin-right: 0;
+                }
+            }
+
+            .progress-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-left: 24px;
+
+                .homework-progress-bar {
+                    width: 120px;
+                    margin: 0;
+                }
+
+                .progress-text {
+                    color: #595959;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        .filter-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .create-assignment-btn {
+                height: 36px;
+            }
+
+            .homework-search-input {
+                width: 280px;
+                border-radius: 4px;
+            }
+        }
+    }
+
+    .homework-list-content {
+        display: flex;
+        flex-direction: column;
+
+        .homework-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f0f0;
+
+            &.student-view {
+                cursor: pointer;
+                transition: background-color 0.3s;
+                padding: 20px 16px;
+                margin: 0 -16px;
+
+                &:hover {
+                    background-color: #fafafa;
+                }
+            }
+
+            &.teacher-view.clickable {
+                cursor: pointer;
+                transition: background-color 0.3s;
+                padding: 20px 16px;
+                margin: 0 -16px;
+
+                &:hover {
+                    background-color: #fafafa;
+                }
+            }
+
+            .homework-item-left {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+
+                .homework-icon {
+                    width: 48px;
+                    height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 14px;
+                    font-weight: 500;
+
+                    &.ongoing {
+                        background-color: @primary-color;
+                        opacity: 0.8;
+                    }
+
+                    &.ended {
+                        background-color: #d9d9d9;
+                    }
+                }
+
+                .homework-item-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+
+                    .homework-title {
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #262626;
+                    }
+
+                    .homework-subtitle {
+                        font-size: 13px;
+
+                        .status-text {
+                            &.uncompleted, &.unpublished {
+                                color: #8c8c8c;
+                            }
+                            &.completed {
+                                color: #52c41a;
+                            }
+                            &.published {
+                                color: @primary-color;
+                            }
+                            &.graded {
+                                color: #fa8c16;
+                            }
+                        }
+
+                        .stats-text {
+                            color: #8c8c8c;
+                        }
+                    }
+                }
+            }
+
+            .homework-item-right {
+                .time-range {
+                    font-size: 14px;
+                }
+            }
+        }
+    }
+}
+
+.assignment-overview-page {
+    padding: 24px;
+    background: #fff;
+    min-height: 100%;
+
+    .overview-page-toolbar {
+        margin-bottom: 16px;
+
+        .overview-page-breadcrumb {
+            margin-bottom: 8px;
+        }
+    }
+
+    .assignment-basic-card {
+        border-radius: 10px;
+
+        .ant-card-head-title {
+            padding: 0;
+        }
+
+        .assignment-basic-desc {
+            margin-bottom: 16px;
+        }
+
+        .assignment-score-summary {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .type-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .type-stat-item {
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+
+            .type-stat-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+                margin-bottom: 8px;
+
+                .type-icon {
+                    font-size: 16px;
+                }
+            }
+
+            .type-stat-body {
+                display: flex;
+                justify-content: space-between;
+                color: #595959;
+                margin-bottom: 8px;
+            }
+        }
+    }
+
+    .overview-mock-panels {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+
+        .ant-card {
+            border-radius: 10px;
+        }
+
+        .mock-question-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #595959;
+
+            li + li {
+                margin-top: 8px;
+            }
+        }
+    }
+
+    .time-edit-tip {
+        margin-top: 12px;
+        color: #8c8c8c;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 960px) {
+    .assignment-overview-page {
+        padding: 16px;
+
+        .assignment-basic-card {
+            .type-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .overview-mock-panels {
+            grid-template-columns: 1fr;
+        }
+    }
+}
