@@ -99,6 +99,7 @@ export type StudentAssignmentDetailDto = {
     title: string;
     start_time: string;
     deadline: string;
+    status: 0 | 1 | 2;
     questions: StudentAssignmentDetailQuestionDto[];
 };
 

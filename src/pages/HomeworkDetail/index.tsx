@@ -47,7 +47,9 @@ const HomeworkDetail = observer(() => {
 
     const isTeacherMode = UserStore.role === ROLE_MAP.TEACHER;
     const isPublished = isTeacherMode && HomeworkStore.isTeacherPublished;
-    const studentReadonly = !isTeacherMode && [1, 2].includes(Number(HomeworkStore.studentSubmissionStatus));
+    const studentSubmissionStatus = HomeworkStore.studentSubmissionStatus;
+    const canStudentAnswer = !isTeacherMode && studentSubmissionStatus === 0;
+    const studentReadonly = !isTeacherMode && !canStudentAnswer;
     const isActionLoading = HomeworkStore.saveDraftLoading || HomeworkStore.submitLoading || HomeworkStore.publishLoading;
     const detail = HomeworkStore.detail;
     const questions = detail ? (isTeacherMode ? HomeworkStore.teacherQuestions : detail.questions) : [];
@@ -95,6 +97,11 @@ const HomeworkDetail = observer(() => {
     };
 
     const handleSaveDraft = async () => {
+        if (!isTeacherMode && !canStudentAnswer) {
+            message.info('当前作业状态不允许保存草稿');
+            return;
+        }
+
         const result = await HomeworkStore.saveDraft(courseId, assignmentId, isTeacherMode ? 'teacher' : 'student');
         if (!result.success) {
             message.warning(result.message || '草稿保存失败');
@@ -114,6 +121,21 @@ const HomeworkDetail = observer(() => {
     };
 
     const handleStudentSubmit = () => {
+        if (!canStudentAnswer) {
+            if (studentSubmissionStatus === 1) {
+                message.info('作业已提交，待批改中，不可重复提交');
+                return;
+            }
+
+            if (studentSubmissionStatus === 2) {
+                message.info('作业已批改，不可重复提交');
+                return;
+            }
+
+            message.info('当前作业状态不允许提交');
+            return;
+        }
+
         Modal.confirm({
             title: '确认提交',
             content: '提交后将不可修改，确认要提交作业吗？',
@@ -168,6 +190,9 @@ const HomeworkDetail = observer(() => {
     };
 
     const handleStudentAnswerChange = (questionId: string, value: any) => {
+        if (!canStudentAnswer) {
+            return;
+        }
         HomeworkStore.setUserAnswer(questionId, value);
     };
 
@@ -198,6 +223,11 @@ const HomeworkDetail = observer(() => {
         files: Array<File>,
         callback: (urls: Array<string>) => void,
     ) => {
+        if (!canStudentAnswer) {
+            message.info('当前作业状态不允许上传作答图片');
+            return;
+        }
+
         if (!assignmentId) {
             message.warning('缺少作业ID，暂无法上传图片');
             return;
@@ -387,7 +417,7 @@ const HomeworkDetail = observer(() => {
                                 onClick={handleSaveDraft}
                                 className="action-btn"
                                 loading={HomeworkStore.saveDraftLoading}
-                                disabled={isActionLoading || studentReadonly}
+                                disabled={isActionLoading || (!isTeacherMode && !canStudentAnswer)}
                             />
                         </Tooltip>
                         {isTeacherMode && (
@@ -418,7 +448,7 @@ const HomeworkDetail = observer(() => {
                                 size="large"
                                 onClick={isTeacherMode ? handleTeacherPublish : handleStudentSubmit}
                                 loading={isTeacherMode ? HomeworkStore.publishLoading : HomeworkStore.submitLoading}
-                                disabled={(isTeacherMode && isPublished) || studentReadonly || HomeworkStore.detailLoading}
+                                disabled={(isTeacherMode && isPublished) || (!isTeacherMode && !canStudentAnswer) || HomeworkStore.detailLoading}
                                 className="action-btn"
                             />
                         </Tooltip>

@@ -1217,7 +1217,13 @@ export class Homework {
             };
 
             const listItem = this.list.find((item) => item.id === detail.id);
-            const submissionStatus = listItem?.submissionStatus ?? null;
+            const detailStatus = Number(data.status);
+            const submissionStatus = Number.isInteger(detailStatus)
+                ? detailStatus
+                : (listItem?.submissionStatus ?? null);
+            const isValidSubmissionStatus = submissionStatus === 0 || submissionStatus === 1 || submissionStatus === 2;
+
+            detail.status = isValidSubmissionStatus ? submissionStatus : undefined;
 
             runInAction(() => {
                 this.setDetail(detail, 'student');
@@ -1256,6 +1262,13 @@ export class Homework {
                 return {
                     success: false,
                     message: '缺少 assignment_id，无法保存学生草稿',
+                };
+            }
+
+            if (this.studentSubmissionStatus !== 0) {
+                return {
+                    success: false,
+                    message: '当前作业非未提交状态，不允许保存草稿',
                 };
             }
 
@@ -1299,6 +1312,10 @@ export class Homework {
         }
 
         if (this.submitLoading) {
+            return false;
+        }
+
+        if (this.studentSubmissionStatus !== 0) {
             return false;
         }
 
