@@ -262,7 +262,7 @@ const DashboardLayout = observer(() => {
       Store.HomeworkStore.reset();
       message.success('切换学校成功');
       setIsSwitchSchoolOpen(false);
-      window.location.href = '/';
+      // window.location.href = '/';
     } catch (error) {
       message.error(error?.message || '切换学校失败，请稍后重试');
     } finally {

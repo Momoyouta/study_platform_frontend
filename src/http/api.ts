@@ -207,6 +207,15 @@ export const updateLessonQuick = (data: {
     return http.put('/course/updateLessonQuick', data);
 }
 
+export const queryLessonVideoLibrary = (params: {
+    course_id: string;
+    page?: number;
+    pageSize?: number;
+    filename?: string;
+}) => {
+    return http.get('/course/queryLessonVideoLibrary', { params });
+}
+
 // ===== 课程任务描述（教师端） =====
 
 export const getCourseDescription = (id: string) => {
