@@ -46,6 +46,7 @@ const CourseDetail = observer(() => {
 	const urlCourseId = searchParams.get('courseId') || '';
 	const urlCreateId = searchParams.get('createId');
 	const urlSchoolId = searchParams.get('schoolId');
+    const urlTeachingGroupId = searchParams.get('teachingGroupId');
 
 	useEffect(() => {
 		if (!urlCourseId) return;
@@ -54,14 +55,15 @@ const CourseDetail = observer(() => {
 		CourseStore.resolveCourseParams({ 
 			courseId: urlCourseId, 
 			createId: urlCreateId, 
-			schoolId: urlSchoolId 
+            schoolId: urlSchoolId,
+            teachingGroupId: urlTeachingGroupId,
 		});
 
 		// 2. 只有在教师模式下才需要获取课程信息和权威判定
 		if (UserStore.role === ROLE_MAP.TEACHER) {
 			CourseStore.fetchCourseBaseInfo(urlCourseId);
 		}
-	}, [urlCourseId, UserStore.role, CourseStore]);
+    }, [urlCourseId, urlCreateId, urlSchoolId, urlTeachingGroupId, UserStore.role, CourseStore]);
 
 	const courseId = CourseStore.currentCourseId;
 	const creatorId = CourseStore.currentCreateId;

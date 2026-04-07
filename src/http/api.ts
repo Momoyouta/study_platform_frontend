@@ -296,7 +296,10 @@ export const updateTeacherAssignment = (data: TeacherAssignmentUpdateRequest) =>
     return http.post('/teacher/assignment/update', data);
 }
 
-export const publishTeacherAssignment = (data: { assignment_id: string }) => {
+export const publishTeacherAssignment = (data: {
+    assignment_id: string;
+    teaching_group_id?: string;
+}) => {
     return http.post('/teacher/assignment/publish', data);
 }
 
@@ -329,6 +332,10 @@ export const getTeacherAssignmentStatistics = (data: {
 export const listTeacherAssignmentSubmissions = (data: {
     assignment_id: string;
     teaching_group_id?: string;
+    studentName?: string;
+    isGraded?: number;
+    page?: number;
+    pageSize?: number;
 }) => {
     return http.post('/teacher/assignment/submissions', data);
 }

@@ -11,11 +11,12 @@ import './index.less';
 const { Text, Title } = Typography;
 
 const Homework = observer(({ courseId }: { courseId: string }) => {
-    const { UserStore, HomeworkStore } = useStore();
+    const { UserStore, HomeworkStore, CourseStore } = useStore();
     const isTeacher = UserStore.role === ROLE_MAP.TEACHER;
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const assignmentId = searchParams.get('assignmentId') || '';
+    const teachingGroupId = searchParams.get('teachingGroupId') || CourseStore.currentTeachingGroupId || '';
 
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchText, setSearchText] = useState('');
@@ -36,6 +37,9 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
         const next = new URLSearchParams(searchParams);
         if (courseId) {
             next.set('courseId', courseId);
+        }
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
         }
 
         Object.entries(patch).forEach(([key, value]) => {
@@ -74,7 +78,16 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
             return;
         }
 
-        navigate(`/homeworkDetail?courseId=${courseId}&assignmentId=${id}&questionNo=1`);
+        const next = new URLSearchParams({
+            courseId,
+            assignmentId: id,
+            questionNo: '1',
+        });
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
+        }
+
+        navigate(`/homeworkDetail?${next.toString()}`);
     };
 
     const handleCreateAssignment = () => {
@@ -82,7 +95,15 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
             return;
         }
 
-        navigate(`/homeworkDetail?courseId=${courseId}&questionNo=1`);
+        const next = new URLSearchParams({
+            courseId,
+            questionNo: '1',
+        });
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
+        }
+
+        navigate(`/homeworkDetail?${next.toString()}`);
     };
 
     if (isTeacher && assignmentId) {
@@ -90,6 +111,7 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
             <AssignmentOverview
                 assignmentId={assignmentId}
                 courseId={courseId}
+                teachingGroupId={teachingGroupId}
                 fallbackItem={selectedTeacherAssignment}
                 onBackToList={() => updateQuery({ assignmentId: undefined })}
             />
@@ -182,9 +204,6 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
                                                 <Space>
                                                     <span className={item.isPublished ? 'status-text published' : 'status-text unpublished'}>
                                                         {item.isPublished ? '已发布' : '未发布'}
-                                                    </span>
-                                                    <span className="stats-text">
-                                                        已批改 {item.gradedCount} / 已提交 {item.submittedCount} / 总人数 {item.totalCount}
                                                     </span>
                                                 </Space>
                                             ) : (

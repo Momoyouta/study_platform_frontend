@@ -39,6 +39,8 @@ const HomeworkDetail = observer(() => {
     const courseId = courseIdFromQuery || CourseStore.currentCourseId || '';
     const assignmentIdFromQuery = searchParams.get('assignmentId') || '';
     const legacyHomeworkId = searchParams.get('homeworkId') || '';
+    const teachingGroupIdFromQuery = searchParams.get('teachingGroupId') || '';
+    const teachingGroupId = teachingGroupIdFromQuery || CourseStore.currentTeachingGroupId || '';
     const assignmentId = assignmentIdFromQuery || legacyHomeworkId;
     const questionNoParam = searchParams.get('questionNo') || '1';
 
@@ -55,11 +57,32 @@ const HomeworkDetail = observer(() => {
     const questions = detail ? (isTeacherMode ? HomeworkStore.teacherQuestions : detail.questions) : [];
     const currentQuestion = questions[HomeworkStore.activeQuestionIndex];
 
-    useEffect(() => {
-        if ((!courseIdFromQuery && courseId) || (!assignmentIdFromQuery && assignmentId)) {
-            setSearchParams({ courseId, assignmentId, questionNo: questionNoParam }, { replace: true });
+    const setDetailQuery = (nextAssignmentId: string, nextQuestionNo: string, options?: { replace?: boolean }) => {
+        const next: Record<string, string> = {
+            courseId,
+            questionNo: nextQuestionNo,
+        };
+
+        if (nextAssignmentId) {
+            next.assignmentId = nextAssignmentId;
         }
-    }, [courseIdFromQuery, courseId, assignmentIdFromQuery, assignmentId, questionNoParam]);
+
+        if (teachingGroupId) {
+            next.teachingGroupId = teachingGroupId;
+        }
+
+        setSearchParams(next, options);
+    };
+
+    useEffect(() => {
+        if (
+            (!courseIdFromQuery && courseId)
+            || (!assignmentIdFromQuery && assignmentId)
+            || (!teachingGroupIdFromQuery && teachingGroupId)
+        ) {
+            setDetailQuery(assignmentId, questionNoParam, { replace: true });
+        }
+    }, [courseIdFromQuery, courseId, assignmentIdFromQuery, assignmentId, questionNoParam, teachingGroupIdFromQuery, teachingGroupId]);
 
     useEffect(() => {
         if (assignmentId) {
@@ -87,13 +110,13 @@ const HomeworkDetail = observer(() => {
 
         const expected = (HomeworkStore.activeQuestionIndex + 1).toString();
         if (expected !== questionNoParam) {
-            setSearchParams({ courseId, assignmentId, questionNo: expected }, { replace: true });
+            setDetailQuery(assignmentId, expected, { replace: true });
         }
-    }, [questionNoParam, detail, questions.length]);
+    }, [questionNoParam, detail, questions.length, teachingGroupId]);
 
     const handleQuestionSelect = (index: number) => {
         HomeworkStore.setActiveQuestionIndex(index);
-        setSearchParams({ courseId, assignmentId, questionNo: (index + 1).toString() });
+        setDetailQuery(assignmentId, (index + 1).toString());
     };
 
     const handleSaveDraft = async () => {
@@ -102,14 +125,19 @@ const HomeworkDetail = observer(() => {
             return;
         }
 
-        const result = await HomeworkStore.saveDraft(courseId, assignmentId, isTeacherMode ? 'teacher' : 'student');
+        const result = await HomeworkStore.saveDraft(
+            courseId,
+            assignmentId,
+            isTeacherMode ? 'teacher' : 'student',
+            teachingGroupId,
+        );
         if (!result.success) {
             message.warning(result.message || '草稿保存失败');
             return;
         }
 
         if (result.assignmentId && result.assignmentId !== assignmentId) {
-            setSearchParams({ courseId, assignmentId: result.assignmentId, questionNo: questionNoParam }, { replace: true });
+            setDetailQuery(result.assignmentId, questionNoParam, { replace: true });
         }
 
         if (isTeacherMode) {
@@ -143,7 +171,11 @@ const HomeworkDetail = observer(() => {
                 const success = await HomeworkStore.submitHomework(courseId, assignmentId);
                 if (success) {
                     message.success('作业提交成功');
-                    navigate(`/courseDetail/homework?courseId=${courseId}`);
+                    const next = new URLSearchParams({ courseId });
+                    if (teachingGroupId) {
+                        next.set('teachingGroupId', teachingGroupId);
+                    }
+                    navigate(`/courseDetail/homework?${next.toString()}`);
                     return;
                 }
 
@@ -163,10 +195,10 @@ const HomeworkDetail = observer(() => {
             content: '发布后将不可修改，是否继续发布？',
             okText: '确认发布',
             onOk: async () => {
-                const result = await HomeworkStore.publishHomework(courseId, assignmentId, 'teacher');
+                const result = await HomeworkStore.publishHomework(courseId, assignmentId, 'teacher', teachingGroupId);
                 if (result.success) {
                     if (result.assignmentId && result.assignmentId !== assignmentId) {
-                        setSearchParams({ courseId, assignmentId: result.assignmentId, questionNo: questionNoParam }, { replace: true });
+                        setDetailQuery(result.assignmentId, questionNoParam, { replace: true });
                     }
                     message.success('作业发布成功');
                     return;
@@ -181,10 +213,14 @@ const HomeworkDetail = observer(() => {
             title: '确认返回',
             content: '返回前请确认已保存草稿，是否继续？',
             onOk: () => {
-                const backUrl = isTeacherMode && assignmentId
-                    ? `/courseDetail/homework?courseId=${courseId}&assignmentId=${assignmentId}`
-                    : `/courseDetail/homework?courseId=${courseId}`;
-                navigate(backUrl);
+                const next = new URLSearchParams({ courseId });
+                if (isTeacherMode && assignmentId) {
+                    next.set('assignmentId', assignmentId);
+                }
+                if (teachingGroupId) {
+                    next.set('teachingGroupId', teachingGroupId);
+                }
+                navigate(`/courseDetail/homework?${next.toString()}`);
             }
         });
     };
@@ -354,7 +390,7 @@ const HomeworkDetail = observer(() => {
         }
 
         const activeNo = HomeworkStore.activeQuestionIndex + 1;
-        setSearchParams({ courseId, assignmentId, questionNo: String(activeNo) });
+        setDetailQuery(assignmentId, String(activeNo));
         setAddQuestionVisible(false);
         message.success(`已新增 ${createdCount} 道题目`);
         return true;
@@ -378,7 +414,7 @@ const HomeworkDetail = observer(() => {
 
         if (result.moved) {
             const activeNo = HomeworkStore.activeQuestionIndex + 1;
-            setSearchParams({ courseId, assignmentId, questionNo: String(activeNo) });
+            setDetailQuery(assignmentId, String(activeNo));
         }
     };
 

@@ -105,14 +105,36 @@ const DashboardLayout = observer(() => {
 
   const courseId = useMemo(() => {
     const params = new URLSearchParams(location.search);
-    return params.get('courseId') || '';
+    return params.get('courseId') || Store.CourseStore.currentCourseId || '';
   }, [location.search]);
 
   const resolveMenuPath = (path) => {
     if (!isCourseMenus) return path;
     const basePath = path === '/' ? '/courseDetail/' : `/courseDetail${path}`;
-    if (!courseId) return basePath;
-    return `${basePath}?courseId=${encodeURIComponent(courseId)}`;
+
+    const params = new URLSearchParams(location.search);
+    const next = new URLSearchParams();
+
+    const nextCourseId = params.get('courseId') || Store.CourseStore.currentCourseId;
+    const nextCreateId = params.get('createId') || Store.CourseStore.currentCreateId;
+    const nextSchoolId = params.get('schoolId') || Store.CourseStore.currentSchoolId;
+    const nextTeachingGroupId = params.get('teachingGroupId') || Store.CourseStore.currentTeachingGroupId;
+
+    if (nextCourseId) {
+      next.set('courseId', nextCourseId);
+    }
+    if (nextCreateId) {
+      next.set('createId', nextCreateId);
+    }
+    if (nextSchoolId) {
+      next.set('schoolId', nextSchoolId);
+    }
+    if (nextTeachingGroupId) {
+      next.set('teachingGroupId', nextTeachingGroupId);
+    }
+
+    const query = next.toString();
+    return query ? `${basePath}?${query}` : basePath;
   };
 
   const activeKey = useMemo(() => {

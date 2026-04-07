@@ -21,6 +21,7 @@ export class Course {
     currentCourseId: string = '';
     currentCreateId: string = '';
     currentSchoolId: string = '';
+    currentTeachingGroupId: string = '';
     isCourseCreator: boolean = false;
     courseName: string = '';
     courseCover: string = '';
@@ -47,8 +48,13 @@ export class Course {
      * 初始化详情页所需的课程参数。
      * 优先解析 URL 传入的参数，解析失败时尝试从 Store 列表中寻找匹配项。
      */
-    resolveCourseParams(params: { courseId: string; createId?: string | null; schoolId?: string | null }) {
-        const { courseId, createId, schoolId } = params;
+    resolveCourseParams(params: {
+        courseId: string;
+        createId?: string | null;
+        schoolId?: string | null;
+        teachingGroupId?: string | null;
+    }) {
+        const { courseId, createId, schoolId, teachingGroupId } = params;
         this.currentCourseId = courseId;
 
         // 尝试从 TeacherStore 恢复/确保教师信息（从 localStorage）
@@ -59,13 +65,18 @@ export class Course {
         // 如果直接传了参数，则直接使用
         if (createId) this.currentCreateId = createId;
         if (schoolId) this.currentSchoolId = schoolId;
+        if (teachingGroupId !== undefined && teachingGroupId !== null) {
+            this.currentTeachingGroupId = teachingGroupId;
+        }
 
         // 如果没有传参数，或者为了确保同步，尝试从列表中查找
-        if (!createId || !schoolId) {
+        if (!createId || !schoolId || !teachingGroupId) {
             const courseInList = this.list.find(c => String(c.course_id) === String(courseId));
             if (courseInList) {
                 this.currentCreateId = courseInList.create_id || courseInList.creator_id || this.currentCreateId;
                 this.currentSchoolId = courseInList.school_id || this.currentSchoolId;
+                this.currentTeachingGroupId =
+                    courseInList.group_id || courseInList.teaching_group_id || this.currentTeachingGroupId;
             }
         }
 
@@ -110,6 +121,10 @@ export class Course {
 
     setTeachingGroups(groups: any[]) {
         this.teachingGroups = groups;
+    }
+
+    setCurrentTeachingGroupId(teachingGroupId?: string | null) {
+        this.currentTeachingGroupId = String(teachingGroupId || '');
     }
 
     /**
@@ -340,6 +355,7 @@ export class Course {
         this.createdTotal = 0;
         this.studentList = [];
         this.studentTotal = 0;
+        this.currentTeachingGroupId = '';
         this.currentCreateId = '';
         this.currentSchoolId = '';
         this.isCourseCreator = false;

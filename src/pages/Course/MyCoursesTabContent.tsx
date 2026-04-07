@@ -117,8 +117,21 @@ const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContent
 				message.success('创建课程成功');
 				setIsCreateModalOpen(false);
 				createForm.resetFields();
+				const next = new URLSearchParams({
+					courseId: String(res.data.course_id || ''),
+					createId: String(TeacherStore.teacherId || ''),
+					schoolId: String(TeacherStore.schoolId || ''),
+				});
+
+				CourseStore.resolveCourseParams({
+					courseId: String(res.data.course_id || ''),
+					createId: String(TeacherStore.teacherId || ''),
+					schoolId: String(TeacherStore.schoolId || ''),
+					teachingGroupId: '',
+				});
+
 				// 直接跳转到详情页的 task (默认) 页，并带上创建者 ID，方便权限判断
-				navigate(`/courseDetail?courseId=${res.data.course_id}&createId=${TeacherStore.teacherId}&schoolId=${TeacherStore.schoolId}`);
+				navigate(`/courseDetail?${next.toString()}`);
 			}
 		} catch (error) {
 			console.error('Failed to create course', error);
@@ -129,7 +142,26 @@ const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContent
 
 	const handleOpenCourseDetail = (course: any) => {
 		const cid = course.create_id || course.creator_id || '';
-		navigate(`/courseDetail?courseId=${course.course_id}&createId=${cid}&schoolId=${course.school_id}`);
+		const teachingGroupId = String(course.group_id || course.teaching_group_id || '');
+
+		const next = new URLSearchParams({
+			courseId: String(course.course_id || ''),
+			createId: String(cid || ''),
+			schoolId: String(course.school_id || ''),
+		});
+
+		if (teachingGroupId) {
+			next.set('teachingGroupId', teachingGroupId);
+		}
+
+		CourseStore.resolveCourseParams({
+			courseId: String(course.course_id || ''),
+			createId: String(cid || ''),
+			schoolId: String(course.school_id || ''),
+			teachingGroupId,
+		});
+
+		navigate(`/courseDetail?${next.toString()}`);
 	};
 
 	const dataSource = useMemo(() => {
