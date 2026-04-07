@@ -1,5 +1,9 @@
 import http from "./http.js";
 import {
+    type ActorType,
+    type JoinSchoolRequest,
+    type SelectSchoolRequest,
+    type StudentAssignmentResultDto,
     ChunkUploadType,
     type StudentAssignmentAnswerPayload,
     type TeacherAssignmentSaveRequest,
@@ -9,45 +13,12 @@ import {
     type UpdatePasswordPayload,
     type UpdatePhonePayload,
 } from "@/type/api";
-export type ActorType = 1 | 2;
-
-export type AuthSchoolOption = {
-    school_id: string;
-    school_name: string;
-    actor_type: ActorType;
-    actor_id: string;
-};
-
-export type PendingAuthResponseData = {
-    pendingToken: string;
-    schools: AuthSchoolOption[];
-};
-
-export type SelectSchoolRequest = {
-    schoolId?: string;
-    school_id?: string;
-    actorType?: ActorType;
-    actor_type?: ActorType;
-};
 
 const normalizeSelectSchoolPayload = (data: SelectSchoolRequest) => {
     return {
         schoolId: data.schoolId || data.school_id || '',
         actorType: data.actorType ?? data.actor_type,
     };
-};
-
-export type StudentAssignmentResultDto = {
-    total_score: string;
-    teacher_comment?: string;
-    details: Array<{
-        question_id: string;
-        score_earned: string;
-        is_correct: number | null;
-        teacher_comment?: string;
-        standard_answer: Record<string, any>;
-        analysis: Record<string, any>;
-    }>;
 };
 
 export const login = (account: string, pwd: string) => {
@@ -71,6 +42,10 @@ export const switchSchool = (data: SelectSchoolRequest) => {
 
 export const getAuthSchools = () => {
     return http.get('/auth/schools');
+}
+
+export const joinSchool = (data: JoinSchoolRequest) => {
+    return http.post('/auth/join-school', data);
 }
 
 export const jwtAuth = (accessToken: string) => {

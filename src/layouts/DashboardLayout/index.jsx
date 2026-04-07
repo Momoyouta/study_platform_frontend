@@ -66,19 +66,27 @@ const DashboardLayout = observer(() => {
   const schoolOptions = Store.UserStore.availableSchools;
   const currentActorType = Store.UserStore.actorType || (userRole === ROLE_MAP.TEACHER ? 1 : (userRole === ROLE_MAP.STUDENT ? 2 : null));
 
-  const toSchoolKey = (school) => `${school.school_id}_${school.actor_type}_${school.actor_id}`;
+  const getSchoolId = (school) => String(school?.school_id || school?.schoolId || '');
+  const getSchoolName = (school) => String(school?.school_name || school?.schoolName || school?.name || '');
+  const getActorType = (school) => Number(school?.actor_type ?? school?.actorType);
+  const getActorId = (school) => String(school?.actor_id || school?.actorId || '');
+  const normalizeSchoolOptions = (options = []) => {
+    return options
+      .map((school) => {
+        return {
+          schoolId: getSchoolId(school),
+          schoolName: getSchoolName(school),
+          actorType: getActorType(school),
+          actorId: getActorId(school),
+        };
+      })
+      .filter((school) => {
+        return !!school.schoolId && !!school.actorId && (school.actorType === 1 || school.actorType === 2);
+      });
+  };
+  const normalizedSchoolOptions = normalizeSchoolOptions(schoolOptions || []);
 
-  const currentSchoolOption = useMemo(() => {
-    return schoolOptions.find((school) => {
-      if (school.school_id !== currentSchoolId) {
-        return false;
-      }
-      if (!currentActorType) {
-        return true;
-      }
-      return school.actor_type === currentActorType;
-    }) || null;
-  }, [schoolOptions, currentActorType, currentSchoolId]);
+  const toSchoolKey = (school) => `${getSchoolId(school)}_${getActorType(school)}_${getActorId(school)}`;
 
   useEffect(() => {
     if (!hasBusinessSession) {
@@ -194,18 +202,26 @@ const DashboardLayout = observer(() => {
 
   const openSwitchSchoolModal = async () => {
     setIsSwitchSchoolOpen(true);
-
-    if (currentSchoolOption) {
-      setSelectedSchoolKey(toSchoolKey(currentSchoolOption));
-    }
-
-    if (schoolOptions.length > 0) {
-      return;
-    }
-
+    setSwitchSchoolLoading(true);
     try {
-      setSwitchSchoolLoading(true);
       await Store.UserStore.fetchAuthSchools();
+
+      const latestSchoolOptions = normalizeSchoolOptions(Store.UserStore.availableSchools || []);
+      const nextCurrentOption = latestSchoolOptions.find((school) => {
+        if (getSchoolId(school) !== currentSchoolId) {
+          return false;
+        }
+        if (!currentActorType) {
+          return true;
+        }
+        return getActorType(school) === currentActorType;
+      }) || null;
+
+      if (nextCurrentOption) {
+        setSelectedSchoolKey(toSchoolKey(nextCurrentOption));
+      } else {
+        setSelectedSchoolKey('');
+      }
     } catch (error) {
       message.error(error?.message || '获取学校列表失败');
     } finally {
@@ -214,13 +230,22 @@ const DashboardLayout = observer(() => {
   };
 
   const handleSwitchSchoolConfirm = async () => {
-    const targetSchool = schoolOptions.find((school) => toSchoolKey(school) === selectedSchoolKey);
+    const targetSchool = normalizedSchoolOptions.find((school) => toSchoolKey(school) === selectedSchoolKey);
     if (!targetSchool) {
       message.warning('请先选择要切换的学校');
       return;
     }
 
-    const isSameSchool = targetSchool.school_id === currentSchoolId && targetSchool.actor_type === currentActorType;
+    const targetSchoolId = getSchoolId(targetSchool);
+    const targetActorType = getActorType(targetSchool);
+    const targetSchoolName = getSchoolName(targetSchool);
+
+    if (!targetSchoolId || (targetActorType !== 1 && targetActorType !== 2)) {
+      message.error('学校数据不完整，请刷新学校列表后重试');
+      return;
+    }
+
+    const isSameSchool = targetSchoolId === currentSchoolId && targetActorType === currentActorType;
     if (isSameSchool) {
       setIsSwitchSchoolOpen(false);
       return;
@@ -229,14 +254,15 @@ const DashboardLayout = observer(() => {
     try {
       setSwitchingSchool(true);
       await Store.UserStore.switchSchool({
-        schoolId: targetSchool.school_id,
-        actorType: targetSchool.actor_type,
-      }, targetSchool.school_name);
+        schoolId: targetSchoolId,
+        actorType: targetActorType,
+      }, targetSchoolName);
       Store.CourseStore.reset();
+      Store.CourseStore.currentSchoolId = Store.UserStore.schoolId || targetSchoolId;
       Store.HomeworkStore.reset();
       message.success('切换学校成功');
       setIsSwitchSchoolOpen(false);
-      navigate('/', { replace: true });
+      window.location.href = '/';
     } catch (error) {
       message.error(error?.message || '切换学校失败，请稍后重试');
     } finally {
@@ -362,16 +388,17 @@ const DashboardLayout = observer(() => {
           </div>
         ) : (
           <>
-            {schoolOptions.length > 0 ? (
+            {normalizedSchoolOptions.length > 0 ? (
               <Radio.Group
                 style={{ width: '100%' }}
                 value={selectedSchoolKey}
                 onChange={(event) => setSelectedSchoolKey(event.target.value)}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {schoolOptions.map((school) => {
+                  {normalizedSchoolOptions.map((school) => {
                     const key = toSchoolKey(school);
                     const checked = key === selectedSchoolKey;
+                    const actorType = getActorType(school);
                     return (
                       <label
                         key={key}
@@ -385,13 +412,13 @@ const DashboardLayout = observer(() => {
                           gap: 10,
                         }}
                       >
-                        <Radio value={key} />
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#233248' }}>{school.school_name}</div>
-                          <div style={{ color: '#65758d', fontSize: 12 }}>
-                            身份：{school.actor_type === 1 ? '老师' : '学生'}
-                          </div>
-                        </div>
+                        <Radio value={key}>
+                          <span style={{ fontWeight: 600, color: '#233248', marginRight:'16px' }}>{getSchoolName(school)}</span>
+                          <span style={{ color: '#65758d', fontSize: 12 }}>
+                            身份：{actorType === 1 ? '老师' : (actorType === 2 ? '学生' : '未知')}
+                          </span>
+                        </Radio>
+                        
                       </label>
                     );
                   })}

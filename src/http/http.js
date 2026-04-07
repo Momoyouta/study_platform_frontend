@@ -26,10 +26,11 @@ instance.interceptors.request.use(
 
         const isSelectSchoolApi = requestPath.includes('/auth/selectSchool');
         const isSchoolsApi = requestPath.includes('/auth/schools');
+        const isJoinSchoolApi = requestPath.includes('/auth/join-school');
 
         const token = isSelectSchoolApi
             ? (pendingToken || '')
-            : (isSchoolsApi ? (businessToken || pendingToken || '') : (businessToken || ''));
+            : ((isSchoolsApi || isJoinSchoolApi) ? (businessToken || pendingToken || '') : (businessToken || ''));
 
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;

@@ -16,6 +16,38 @@ export type UpdatePasswordPayload = {
     newPassword: string;
 };
 
+export type ActorType = 1 | 2;
+
+export type AuthSchoolOption = {
+    school_id: string;
+    school_name: string;
+    actor_type: ActorType;
+    actor_id: string;
+};
+
+export type PendingAuthResponseData = {
+    pendingToken: string;
+    schools: AuthSchoolOption[];
+};
+
+export type SelectSchoolRequest = {
+    schoolId?: string;
+    school_id?: string;
+    actorType?: ActorType;
+    actor_type?: ActorType;
+};
+
+export type JoinSchoolRequest = {
+    code: string;
+};
+
+export type JoinSchoolResponse = {
+    school_id: string;
+    actor_type: ActorType;
+    actor_id: string;
+    joined: boolean;
+};
+
 export type AssignmentQuestionTypeCode = 1 | 2 | 3 | 4 | 5;
 
 export type TeacherAssignmentQuestionPayload = {

@@ -20,6 +20,9 @@ type RootStoreLike = {
         setFromDto: (dto: any) => void;
         clearProfile: () => void;
     };
+    CourseStore?: {
+        currentSchoolId: string;
+    };
 };
 
 type ApiEnvelope<T> = {
@@ -52,6 +55,9 @@ type StoredActorContext = {
 type ApplyAuthOptions = {
     keepToken?: boolean;
     schoolNameHint?: string;
+    schoolIdHint?: string;
+    actorTypeHint?: ActorType | null;
+    actorIdHint?: string;
 };
 
 const BUSINESS_TOKEN_STORAGE_KEY = 'access_token';
@@ -220,21 +226,24 @@ export class User {
 
     private extractAuthPayload(response: ApiEnvelope<AuthPayload> | AuthPayload | undefined | null) {
         const payload = ((response as ApiEnvelope<AuthPayload>)?.data ?? response ?? {}) as AuthPayload;
+        const payloadAny = payload as any;
 
         const hasPendingSchoolsField = Object.prototype.hasOwnProperty.call(payload, 'schools')
-            || Object.prototype.hasOwnProperty.call(payload, 'selectableSchools');
-        const pendingToken = payload.pendingToken || (hasPendingSchoolsField ? payload.token : undefined);
-        const rawSchools = payload.schools || payload.selectableSchools || [];
+            || Object.prototype.hasOwnProperty.call(payload, 'selectableSchools')
+            || Object.prototype.hasOwnProperty.call(payloadAny, 'school_options');
+        const token = payload.token || payloadAny.accessToken || payloadAny.businessToken;
+        const pendingToken = payload.pendingToken || payloadAny.pending_token || (hasPendingSchoolsField ? token : undefined);
+        const rawSchools = payload.schools || payload.selectableSchools || payloadAny.school_options || [];
         const schools = rawSchools
-            .map((item) => this.normalizeSchoolOption(item))
-            .filter((item): item is AuthSchoolOptionDto => !!item);
+            .map((item: AuthSchoolOptionLike) => this.normalizeSchoolOption(item))
+            .filter((item: AuthSchoolOptionDto | null): item is AuthSchoolOptionDto => !!item);
 
         return {
             pendingToken,
             schools,
-            token: payload.token,
-            valid: payload.valid,
-            userProfile: payload.userProfile,
+            token,
+            valid: payload.valid ?? payloadAny.isValid,
+            userProfile: payload.userProfile || payloadAny.user_profile,
         };
     }
 
@@ -311,6 +320,9 @@ export class User {
 
         this.rootStore.StudentStore.clearProfile();
         this.rootStore.TeacherStore.clearProfile();
+        if (this.rootStore.CourseStore) {
+            this.rootStore.CourseStore.currentSchoolId = '';
+        }
     }
 
     setUserFromDto(dto: CurrentUserInfoDto | null) {
@@ -405,6 +417,9 @@ export class User {
         const { studentInfo, teacherInfo } = this.resolveRoleProfiles(userProfile);
         const schoolId = teacherInfo?.school_id || studentInfo?.school_id || '';
         this.setSchoolId(schoolId);
+        if (this.rootStore.CourseStore) {
+            this.rootStore.CourseStore.currentSchoolId = schoolId;
+        }
 
         const actorType = teacherInfo ? 1 : (studentInfo ? 2 : this.resolveActorTypeFromRole(primaryRole));
         const actorId = teacherInfo?.teacher_id || studentInfo?.student_id || '';
@@ -438,31 +453,41 @@ export class User {
         this.rootStore.TeacherStore.clearProfile();
     }
 
-    private applyProfileFromBusiness(userProfile: BusinessUserProfile, schoolNameHint?: string) {
-        const roleFromActor = this.resolveRoleFromActorType(userProfile.actor_type);
+    private applyProfileFromBusiness(userProfile: BusinessUserProfile, options?: ApplyAuthOptions) {
+        const userProfileAny = userProfile as any;
+        const actorTypeRaw = userProfileAny.actor_type ?? userProfileAny.actorType ?? options?.actorTypeHint;
+        const actorTypeNum = Number(actorTypeRaw);
+        const actorType = actorTypeNum === 1 || actorTypeNum === 2
+            ? actorTypeNum as ActorType
+            : (options?.actorTypeHint ?? this.resolveActorTypeFromRole(this.role));
+        const currentSchoolId = String(userProfileAny.current_school_id || userProfileAny.currentSchoolId || options?.schoolIdHint || '');
+        const actorId = String(userProfileAny.actor_id || userProfileAny.actorId || options?.actorIdHint || '');
+        const roleId = String(userProfileAny.role_id || userProfileAny.roleId || this.roleId || '');
+        const roleFromActor = this.resolveRoleFromActorType(actorType);
         const primaryRole = roleFromActor || this.resolvePrimaryRole({
             user: {
-                id: userProfile.id,
-                name: userProfile.name,
-                role_id: userProfile.role_id,
+                id: userProfileAny.id,
+                name: userProfileAny.name,
+                role_id: roleId,
                 sex: this.sex ?? true,
-                account: userProfile.account,
+                account: userProfileAny.account,
                 avatar: this.avatar,
             },
             roles: [],
             school_name: '',
         });
 
-        const schoolName = userProfile.school_name
-            || schoolNameHint
-            || this.resolveSchoolNameById(userProfile.current_school_id, userProfile.actor_type);
+        const schoolName = userProfileAny.school_name
+            || userProfileAny.schoolName
+            || options?.schoolNameHint
+            || this.resolveSchoolNameById(currentSchoolId, actorType);
 
         this.setUserFromDto({
-            id: userProfile.id,
-            name: userProfile.name,
-            role_id: userProfile.role_id,
+            id: userProfileAny.id || this.userId,
+            name: userProfileAny.name || this.userName,
+            role_id: roleId,
             sex: this.sex ?? true,
-            account: userProfile.account,
+            account: userProfileAny.account || this.account,
             phone: this.phone,
             avatar: this.avatar,
             create_time: this.createTime,
@@ -471,27 +496,35 @@ export class User {
         });
         this.setRoles([]);
         this.setRole(primaryRole);
-        this.setSchoolId(userProfile.current_school_id || '');
+        this.setSchoolId(currentSchoolId);
         this.setSchoolName(schoolName || '');
-        this.setActorContext(userProfile.actor_type, userProfile.actor_id || '');
+        this.setActorContext(actorType, actorId);
+        if (this.rootStore.CourseStore) {
+            this.rootStore.CourseStore.currentSchoolId = currentSchoolId;
+        }
 
-        if (userProfile.actor_type === 1) {
+        if (actorType === 1) {
             this.rootStore.TeacherStore.setFromDto({
-                teacher_id: userProfile.actor_id,
-                school_id: userProfile.current_school_id,
+                teacher_id: actorId,
+                school_id: currentSchoolId,
                 school_name: schoolName,
-                user_id: userProfile.id,
+                user_id: userProfileAny.id,
             });
             this.rootStore.StudentStore.clearProfile();
             return;
         }
 
-        this.rootStore.StudentStore.setFromDto({
-            student_id: userProfile.actor_id,
-            school_id: userProfile.current_school_id,
-            school_name: schoolName,
-            user_id: userProfile.id,
-        });
+        if (actorType === 2) {
+            this.rootStore.StudentStore.setFromDto({
+                student_id: actorId,
+                school_id: currentSchoolId,
+                school_name: schoolName,
+                user_id: userProfileAny.id,
+            });
+        } else {
+            this.rootStore.StudentStore.clearProfile();
+        }
+
         this.rootStore.TeacherStore.clearProfile();
     }
 
@@ -513,13 +546,51 @@ export class User {
         }
 
         if (!payload.userProfile) {
+            if (payload.token && options?.schoolIdHint) {
+                this.setPendingToken(null);
+                this.setSchoolId(options.schoolIdHint);
+                if (this.rootStore.CourseStore) {
+                    this.rootStore.CourseStore.currentSchoolId = options.schoolIdHint;
+                }
+                if (options.schoolNameHint) {
+                    this.setSchoolName(options.schoolNameHint);
+                }
+
+                const fallbackActorType = options.actorTypeHint ?? this.resolveActorTypeFromRole(this.role);
+                const fallbackActorId = options.actorIdHint || this.actorId;
+                const fallbackSchoolName = options.schoolNameHint || this.schoolName;
+                this.setActorContext(fallbackActorType, fallbackActorId);
+
+                const fallbackRole = this.resolveRoleFromActorType(fallbackActorType);
+                if (fallbackRole) {
+                    this.setRole(fallbackRole);
+                }
+
+                if (fallbackActorType === 1) {
+                    this.rootStore.TeacherStore.setFromDto({
+                        teacher_id: fallbackActorId,
+                        school_id: options.schoolIdHint,
+                        school_name: fallbackSchoolName,
+                        user_id: this.userId,
+                    });
+                    this.rootStore.StudentStore.clearProfile();
+                } else if (fallbackActorType === 2) {
+                    this.rootStore.StudentStore.setFromDto({
+                        student_id: fallbackActorId,
+                        school_id: options.schoolIdHint,
+                        school_name: fallbackSchoolName,
+                        user_id: this.userId,
+                    });
+                    this.rootStore.TeacherStore.clearProfile();
+                }
+            }
             return;
         }
 
         this.setPendingToken(null);
 
         if (this.isBusinessProfile(payload.userProfile)) {
-            this.applyProfileFromBusiness(payload.userProfile, options?.schoolNameHint);
+            this.applyProfileFromBusiness(payload.userProfile, options);
             return;
         }
 
@@ -548,6 +619,9 @@ export class User {
         const { selectSchool } = await import('@/http/api');
         const schoolId = selection.schoolId || selection.school_id || '';
         const actorType = selection.actorType ?? selection.actor_type;
+        const matchedSchool = this.availableSchools.find((item) => {
+            return item.school_id === schoolId && item.actor_type === actorType;
+        });
         const res: any = await selectSchool({
             schoolId,
             actorType,
@@ -555,7 +629,12 @@ export class User {
         if (res?.code !== undefined && res.code !== 0 && res.code !== 200) {
             throw new Error(res?.msg || '选校失败');
         }
-        this.applyAuthResponse(res, { schoolNameHint });
+        this.applyAuthResponse(res, {
+            schoolNameHint: schoolNameHint || matchedSchool?.school_name,
+            schoolIdHint: schoolId,
+            actorTypeHint: actorType,
+            actorIdHint: matchedSchool?.actor_id,
+        });
         return res;
     }
 
@@ -563,6 +642,9 @@ export class User {
         const { switchSchool } = await import('@/http/api');
         const schoolId = selection.schoolId || selection.school_id || '';
         const actorType = selection.actorType ?? selection.actor_type;
+        const matchedSchool = this.availableSchools.find((item) => {
+            return item.school_id === schoolId && item.actor_type === actorType;
+        });
         const res: any = await switchSchool({
             schoolId,
             actorType,
@@ -570,7 +652,12 @@ export class User {
         if (res?.code !== undefined && res.code !== 0 && res.code !== 200) {
             throw new Error(res?.msg || '切校失败');
         }
-        this.applyAuthResponse(res, { schoolNameHint });
+        this.applyAuthResponse(res, {
+            schoolNameHint: schoolNameHint || matchedSchool?.school_name,
+            schoolIdHint: schoolId,
+            actorTypeHint: actorType,
+            actorIdHint: matchedSchool?.actor_id,
+        });
         return res;
     }
 

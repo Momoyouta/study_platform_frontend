@@ -4,6 +4,7 @@ import BasicProfileTabContent from './BasicProfileTabContent.tsx';
 import AvatarTabContent from './AvatarTabContent.tsx';
 import PasswordTabContent from './PasswordTabContent.tsx';
 import SchoolSwitchTabContent from './SchoolSwitchTabContent.tsx';
+import JoinSchoolTabContent from './JoinSchoolTabContent.tsx';
 import './index.less';
 
 const AccountManage = () => {
@@ -27,6 +28,11 @@ const AccountManage = () => {
       key: 'school-switch',
       label: '切换学校',
       children: <SchoolSwitchTabContent />,
+    },
+    {
+      key: 'school-join',
+      label: '加入学校',
+      children: <JoinSchoolTabContent />,
     },
   ];
 
