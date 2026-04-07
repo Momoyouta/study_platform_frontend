@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Avatar, Dropdown, Layout, Menu, message, Grid, Button, Modal, Form, Input, Switch } from 'antd';
+import { Avatar, Layout, Menu, message, Grid, Button, Modal, Form, Input, Switch } from 'antd';
 import {
   AppstoreOutlined,
   BookOutlined,
@@ -21,6 +21,7 @@ import Store, { resetStores } from '@/store/index.ts';
 import { buildFileViewUrl } from '@/utils/fileUrl.ts';
 import { updateCourseBasicInfo } from '@/http/api.ts';
 import TempImageUpload from '@/components/TempImageUpload.tsx';
+import UserProfileDropdown from '@/components/UserProfileDropdown.tsx';
 import './index.less';
 
 const { Header, Sider, Content } = Layout;
@@ -162,20 +163,6 @@ const DashboardLayout = observer(() => {
     navigate('/login', { replace: true });
   };
 
-  const profileMenu = {
-    items: [
-      { key: 'account', label: '账号管理' },
-      { key: 'logout', label: '退出登录' },
-    ],
-    onClick: ({ key }) => {
-      if (key === 'account') {
-        navigate('/account');
-        return;
-      }
-      handleLogout();
-    },
-  };
-
   const menuItems = currentMenus.map((item) => ({
     key: item.key,
     icon: item.icon,
@@ -188,12 +175,12 @@ const DashboardLayout = observer(() => {
     <Layout className="dashboard-shell">
       <Header className="dashboard-topbar">
         <div className="school-title">{Store.UserStore.schoolName}</div>
-        <Dropdown menu={profileMenu} trigger={['hover']} placement="bottomRight">
-          <div className="user-anchor" role="button" tabIndex={0}>
-            <Avatar className="user-anchor-avatar" src={userAvatarSrc} icon={<UserOutlined />} />
-            <span className="user-anchor-name">{userName}</span>
-          </div>
-        </Dropdown>
+        <UserProfileDropdown
+          userName={userName}
+          avatarSrc={userAvatarSrc}
+          onAccount={() => navigate('/account')}
+          onLogout={handleLogout}
+        />
       </Header>
 
       <Layout className="dashboard-body" style={{ '--dashboard-sider-width': `${collapsed ? 80 : 264}px` }}>

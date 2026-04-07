@@ -358,6 +358,12 @@ export const gradeTeacherAssignmentSubmission = (data: {
     return http.post('/teacher/assignment/grade', data);
 }
 
+export const finishTeacherAssignmentSubmissionGrading = (data: {
+    submission_id: string;
+}) => {
+    return http.post('/teacher/assignment/submissions/finish-grading', data);
+}
+
 export const uploadTeacherAssignmentQuestionImage = (data: {
     file: File;
     question_id: string;

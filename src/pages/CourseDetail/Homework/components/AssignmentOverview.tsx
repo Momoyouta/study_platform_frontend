@@ -119,7 +119,7 @@ const getSubmissionStatusMeta = (status: number) => {
     }
 
     if (status === 1) {
-        return { text: '已提交', color: 'processing' as const };
+        return { text: '待批改', color: 'warning' as const };
     }
 
     return { text: '未知状态', color: 'default' as const };

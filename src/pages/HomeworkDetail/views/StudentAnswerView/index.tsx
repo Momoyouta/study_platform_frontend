@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/store';
 import { Layout, Button, Tooltip, message, Modal, Image } from 'antd';
@@ -28,16 +28,16 @@ const StudentAnswerView = observer(({
     handleBack,
     setDetailQuery
 }: StudentAnswerViewProps) => {
-    const { HomeworkStore, UserStore } = useStore();
+    const { HomeworkStore } = useStore();
     const isTeacherMode = false; // Always false in this view
-    const canStudentAnswer = true;
+    const canStudentAnswer = HomeworkStore.studentSubmissionStatus === 0;
     const isActionLoading = HomeworkStore.saveDraftLoading || HomeworkStore.submitLoading;
 
     const detail = HomeworkStore.detail;
     const questions = detail?.questions || [];
     const currentAnswerMap = HomeworkStore.userAnswers;
     const currentQuestion = questions[HomeworkStore.activeQuestionIndex];
-    const studentReadonly = false;
+    const studentReadonly = !canStudentAnswer;
 
     useEffect(() => {
         if (!detail) {
@@ -66,6 +66,11 @@ const StudentAnswerView = observer(({
     };
 
     const handleSaveDraft = async () => {
+        if (!canStudentAnswer) {
+            message.info('作业已提交，待批改期间不可修改');
+            return;
+        }
+
         const result = await HomeworkStore.saveDraft(
             courseId,
             assignmentId,
@@ -86,6 +91,11 @@ const StudentAnswerView = observer(({
 
     const navigate = useNavigate();
     const handleStudentSubmit = () => {
+        if (!canStudentAnswer) {
+            message.info('作业已提交，待批改期间不可重复提交');
+            return;
+        }
+
         Modal.confirm({
             title: '确认提交',
             content: '提交后将不可修改，确认要提交作业吗？',
@@ -191,7 +201,7 @@ const StudentAnswerView = observer(({
                             onClick={handleSaveDraft}
                             className="action-btn"
                             loading={HomeworkStore.saveDraftLoading}
-                            disabled={isActionLoading}
+                            disabled={isActionLoading || !canStudentAnswer}
                         />
                     </Tooltip>
                     <Tooltip title="提交" placement="right">
@@ -200,6 +210,7 @@ const StudentAnswerView = observer(({
                             size="large"
                             onClick={handleStudentSubmit}
                             loading={HomeworkStore.submitLoading}
+                            disabled={isActionLoading || !canStudentAnswer}
                             className="action-btn"
                         />
                     </Tooltip>
@@ -212,8 +223,10 @@ const StudentAnswerView = observer(({
             <Content className="homework-content">
                 <div className="question-card">
                     <div className="question-header">
-                        <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
-                        <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        <span className="question-main">
+                            <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
+                            <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        </span>
                         {currentQuestion && <span className="question-score">({currentQuestion.score}分)</span>}
                     </div>
                     {!!currentQuestion?.questionImages?.length && (

@@ -10,6 +10,9 @@
         align-items: center;
         justify-content: space-between;
         background-color: @primary-color;
+        --user-profile-name-color: #ffffff;
+        --user-profile-avatar-bg: rgba(255, 255, 255, 0.28);
+        --user-profile-avatar-color: #ffffff;
         padding: 0 24px;
         height: 64px;
         line-height: 64px;
@@ -39,17 +42,11 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #fff;
             position: absolute;
             right: 24px;
 
-            .user-icon {
-                font-size: 20px;
-            }
-
-            .username {
-                font-size: 14px;
+            .homework-user-profile {
+                line-height: 1;
             }
         }
     }
@@ -157,9 +154,14 @@
                     font-size: 16px;
                     color: #262626;
                     display: flex;
-                    align-items: center;
+                    align-items: flex-start;
                     flex-wrap: wrap;
                     gap: 8px;
+
+                    .question-main {
+                        flex: 1;
+                        min-width: 0;
+                    }
 
                     .question-no {
                         font-weight: 500;
@@ -167,11 +169,11 @@
 
                     .question-title {
                         font-weight: 500;
+                        word-break: break-word;
                     }
 
                     .question-score {
                         color: #8c8c8c;
-                        margin-left: 8px;
                         font-size: 14px;
                     }
 

@@ -3,10 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/store';
 import { Layout, Button, Tooltip, message, Image, Alert, Descriptions, Spin, Modal, Form, Input, InputNumber } from 'antd';
-import { RollbackOutlined, FormOutlined } from '@ant-design/icons';
+import { RollbackOutlined, FormOutlined, CheckOutlined } from '@ant-design/icons';
 import { MdPreview } from 'md-editor-rt';
 import type { Question } from '@/store/homework';
-import { getTeacherAssignmentSubjectiveSubmission, gradeTeacherAssignmentSubmission } from '@/http/api';
+import {
+    getTeacherAssignmentSubjectiveSubmission,
+    gradeTeacherAssignmentSubmission,
+    finishTeacherAssignmentSubmissionGrading,
+} from '@/http/api';
 import { buildSubjectiveReviewData, toText, normalizeImageList } from '../../utils';
 import StudentQuestionContent from '../../components/StudentQuestionContent';
 import QuestionIndexSider from '../../components/QuestionIndexSider';
@@ -47,6 +51,7 @@ const TeacherReviewView = observer(({
     // UI state
     const [scoreModalVisible, setScoreModalVisible] = useState(false);
     const [scoreSubmitting, setScoreSubmitting] = useState(false);
+    const [finishSubmitting, setFinishSubmitting] = useState(false);
     const [scoreTargetQuestionId, setScoreTargetQuestionId] = useState('');
     const [scoreForm] = Form.useForm<{ score: number; teacherComment?: string }>();
 
@@ -226,6 +231,38 @@ const TeacherReviewView = observer(({
         }
     };
 
+    const handleFinishGrading = () => {
+        if (!reviewSubmissionId) {
+            message.warning('提交记录ID缺失，无法完成批卷');
+            return;
+        }
+
+        Modal.confirm({
+            title: '确认完成批卷',
+            content: '完成后该提交记录将标记为已批改，是否继续？',
+            okText: '确认完成',
+            cancelText: '取消',
+            onOk: async () => {
+                setFinishSubmitting(true);
+                try {
+                    const response: any = await finishTeacherAssignmentSubmissionGrading({
+                        submission_id: reviewSubmissionId,
+                    });
+
+                    if (response?.code !== 200) {
+                        message.warning(response?.msg || '完成批卷失败，请稍后重试');
+                        return;
+                    }
+
+                    message.success('已完成批卷');
+                    handleBack();
+                } finally {
+                    setFinishSubmitting(false);
+                }
+            },
+        });
+    };
+
     if (reviewLoading) {
         return (
             <div className="homework-detail-loading" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -245,7 +282,17 @@ const TeacherReviewView = observer(({
                             onClick={openScoreModal}
                             className="action-btn"
                             loading={scoreSubmitting}
-                            disabled={!currentQuestion || !reviewSubmissionId}
+                            disabled={!currentQuestion || !reviewSubmissionId || finishSubmitting}
+                        />
+                    </Tooltip>
+                    <Tooltip title="完成批卷" placement="right">
+                        <Button
+                            icon={<CheckOutlined />}
+                            size="large"
+                            onClick={handleFinishGrading}
+                            className="action-btn"
+                            loading={finishSubmitting}
+                            disabled={!reviewSubmissionId || scoreSubmitting}
                         />
                     </Tooltip>
                     <Tooltip title="返回作业概览" placement="right">
@@ -257,8 +304,10 @@ const TeacherReviewView = observer(({
             <Content className="homework-content">
                 <div className="question-card">
                     <div className="question-header">
-                        <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
-                        <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        <span className="question-main">
+                            <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
+                            <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        </span>
                         {currentQuestion && <span className="question-score">({currentQuestion.score}分)</span>}
                         {currentQuestion && (
                             <span className="question-review-score">

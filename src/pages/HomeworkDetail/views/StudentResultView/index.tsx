@@ -134,8 +134,10 @@ const StudentResultView = observer(({
             <Content className="homework-content">
                 <div className="question-card">
                     <div className="question-header">
-                        <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
-                        <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        <span className="question-main">
+                            <span className="question-no">{HomeworkStore.activeQuestionIndex + 1}. </span>
+                            <span className="question-title">{currentQuestion?.title || '暂无题目'}</span>
+                        </span>
                         {currentQuestion && <span className="question-score">({currentQuestion.score}分)</span>}
                     </div>
                     {!!currentQuestion?.questionImages?.length && (

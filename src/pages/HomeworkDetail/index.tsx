@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '@/store';
-import { Layout, Typography, Tag, Modal, Spin } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { useStore, resetStores } from '@/store';
+import { Layout, Typography, Tag, Modal, Spin, message } from 'antd';
 import { ROLE_MAP } from '@/type/map.js';
+import { buildFileViewUrl } from '@/utils/fileUrl';
+import UserProfileDropdown from '@/components/UserProfileDropdown';
 
 import StudentAnswerView from './views/StudentAnswerView';
 import StudentResultView from './views/StudentResultView';
@@ -46,6 +47,8 @@ const HomeworkDetail = observer(() => {
     const studentSubmissionStatus = HomeworkStore.studentSubmissionStatus;
     const studentResult = HomeworkStore.studentResult;
     const isStudentReviewedView = !isTeacherMode && !isReviewRoute && studentSubmissionStatus === 2 && !!studentResult;
+    const userName = UserStore.displayName || '未命名用户';
+    const userAvatarSrc = UserStore.avatar ? buildFileViewUrl(UserStore.avatar) || undefined : undefined;
 
     const detail = HomeworkStore.detail;
     const titleText = isReviewRoute
@@ -138,6 +141,13 @@ const HomeworkDetail = observer(() => {
         });
     };
 
+    const handleLogout = () => {
+        localStorage.clear();
+        resetStores();
+        message.success('已退出登录');
+        navigate('/login', { replace: true });
+    };
+
     if (!isTeacherReviewMode && !detail) {
         return (
             <div className="homework-detail-loading">
@@ -213,8 +223,13 @@ const HomeworkDetail = observer(() => {
                     )}
                 </div>
                 <div className="header-right">
-                    <UserOutlined className="user-icon" />
-                    <span className="username">{UserStore.displayName}</span>
+                    <UserProfileDropdown
+                        userName={userName}
+                        avatarSrc={userAvatarSrc}
+                        className="homework-user-profile"
+                        onAccount={() => navigate('/account')}
+                        onLogout={handleLogout}
+                    />
                 </div>
             </Header>
 
