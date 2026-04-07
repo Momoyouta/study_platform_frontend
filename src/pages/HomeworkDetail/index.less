@@ -277,6 +277,26 @@
                         width: 100%;
                         border: 1px solid #d9d9d9;
                         border-radius: 4px;
+                        overflow: hidden;
+
+                        .md-editor,
+                        .md-editor-preview-wrapper {
+                            max-width: 100%;
+                        }
+
+                        .md-editor-preview-wrapper {
+                            overflow-x: auto;
+                        }
+
+                        .md-editor-preview {
+                            overflow-wrap: anywhere;
+
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                                display: block;
+                            }
+                        }
 
                         .student-short-toolbar {
                             display: flex;
@@ -483,10 +503,49 @@
                                 border-color: #91caff;
                             }
 
+                            &.review-correct {
+                                background-color: #f6ffed;
+                                border-color: #95de64;
+                                color: #389e0d;
+                            }
+
+                            &.review-wrong {
+                                background-color: #fff1f0;
+                                border-color: #ffa39e;
+                                color: #cf1322;
+                            }
+
+                            &.review-partial {
+                                background-color: #e6f4ff;
+                                border-color: #91caff;
+                                color: #1677ff;
+                            }
+
                             &.active {
                                 background-color: @primary-color;
                                 color: #fff;
                                 border-color: @primary-color;
+                            }
+
+                            &.active.review-correct {
+                                background-color: #f6ffed;
+                                border-color: #52c41a;
+                                color: #237804;
+                                box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+                            }
+
+                            &.active.review-wrong {
+                                background-color: #fff1f0;
+                                border-color: #ff4d4f;
+                                color: #a8071a;
+                                box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+                            }
+
+                            &.active.review-partial {
+                                background-color: #e6f4ff;
+                                border-color: #1677ff;
+                                color: #0958d9;
+                                box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
                             }
 
                             &:hover:not(.active) {

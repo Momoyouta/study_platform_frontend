@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/store';
@@ -40,6 +40,34 @@ const StudentResultView = observer(({
     const studentResultDetails = Array.isArray(studentResult?.details)
         ? (studentResult.details as Array<Record<string, any>>)
         : [];
+
+    const studentReviewedStatusMap = useMemo(() => {
+        return questions.reduce((acc, question) => {
+            const detailItem = findStudentResultDetailByQuestion(studentResultDetails, question);
+            if (!detailItem) {
+                return acc;
+            }
+
+            if (question.type === 'fill' || question.type === 'short') {
+                const earnedScore = Number(detailItem?.score_earned);
+                const fullScore = Number(question.score);
+                const isFullScore = !Number.isNaN(earnedScore) && !Number.isNaN(fullScore) && earnedScore >= fullScore;
+
+                acc[question.id] = isFullScore ? 'correct' : 'partial';
+                return acc;
+            }
+
+            const isCorrect = Number(detailItem?.is_correct);
+            if (isCorrect === 1) {
+                acc[question.id] = 'correct';
+            } else if (isCorrect === 0) {
+                acc[question.id] = 'wrong';
+            }
+
+            return acc;
+        }, {} as Record<string, 'correct' | 'wrong' | 'partial'>);
+    }, [questions, studentResultDetails]);
+
     const currentStudentResultDetail = findStudentResultDetailByQuestion(studentResultDetails, currentQuestion);
 
     const currentStudentQuestionScore = currentStudentResultDetail?.score_earned;
@@ -194,6 +222,7 @@ const StudentResultView = observer(({
                 isTeacherMode={isTeacherMode}
                 isPublished={false} // Only false to prevent weird effects in QuestionIndexSider. it does not matter much here
                 withStudentResultSummary={true}
+                studentReviewedStatusMap={studentReviewedStatusMap}
                 userAnswers={currentAnswerMap}
                 onQuestionSelect={handleQuestionSelect}
             />

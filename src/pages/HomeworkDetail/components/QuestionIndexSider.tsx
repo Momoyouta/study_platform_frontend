@@ -9,6 +9,7 @@ import { TYPE_NAMES } from '../constants';
 const { Sider } = Layout;
 
 type GroupItem = { question: Question; index: number };
+type StudentReviewedStatus = 'correct' | 'wrong' | 'partial';
 
 type QuestionIndexSiderProps = {
     questions: Question[];
@@ -16,6 +17,7 @@ type QuestionIndexSiderProps = {
     isTeacherMode: boolean;
     isPublished: boolean;
     withStudentResultSummary?: boolean;
+    studentReviewedStatusMap?: Record<string, StudentReviewedStatus>;
     userAnswers: Record<string, any>;
     onQuestionSelect: (index: number) => void;
     onTeacherDragEnd?: (event: DragEndEvent) => void;
@@ -64,6 +66,7 @@ const QuestionIndexSider = ({
     isTeacherMode,
     isPublished,
     withStudentResultSummary = false,
+    studentReviewedStatusMap,
     userAnswers,
     onQuestionSelect,
     onTeacherDragEnd,
@@ -127,13 +130,15 @@ const QuestionIndexSider = ({
                             {items.map((item) => {
                                 const isActive = activeQuestionIndex === item.index;
                                 const isAnswered = userAnswers[item.question.id] !== undefined;
+                                const reviewedStatus = studentReviewedStatusMap?.[item.question.id];
+                                const reviewedStatusClassName = reviewedStatus ? `review-${reviewedStatus}` : '';
 
                                 return (
                                     <div
                                         key={item.question.id}
                                         className={`question-grid-item ${isActive ? 'active' : ''} ${
                                             isAnswered ? 'answered' : ''
-                                        }`}
+                                        } ${reviewedStatusClassName}`}
                                         onClick={() => onQuestionSelect(item.index)}
                                     >
                                         {item.index + 1}
