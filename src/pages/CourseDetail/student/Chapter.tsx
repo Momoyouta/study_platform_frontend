@@ -15,7 +15,7 @@ const { Text, Title } = Typography;
 const Chapter = observer(() => {
     const location = useLocation();
     const courseId = new URLSearchParams(location.search).get('courseId');
-    const { CourseStore, UserStore, StudentStore } = useStore();
+    const { CourseStore, UserStore } = useStore();
 
     // 老师权限标志
     const isTeacher = UserStore.role === ROLE_MAP.TEACHER;
@@ -30,11 +30,10 @@ const Chapter = observer(() => {
     }, [courseId, CourseStore]);
 
     useEffect(() => {
-        const schoolId = StudentStore.schoolId || CourseStore.currentSchoolId;
-        if (courseId && schoolId && !isTeacher) {
-            CourseStore.fetchLearningProgress({ schoolId, courseId });
+        if (courseId && !isTeacher) {
+            CourseStore.fetchLearningProgress({ courseId });
         }
-    }, [courseId, CourseStore, StudentStore.schoolId, CourseStore.currentSchoolId, isTeacher]);
+    }, [courseId, CourseStore, isTeacher]);
 
     const chapters = CourseStore.chapters || [];
 
@@ -64,14 +63,13 @@ const Chapter = observer(() => {
             chapterId: selectedLesson.chapter_id,
             lessonId: selectedLesson.lesson_id,
             progress_percent: progressPercent,
-            schoolId: StudentStore.schoolId || CourseStore.currentSchoolId || undefined
         }).then((res: any) => {
             if (res?.code === 200 && res.data) {
                 // 如果后端返回了新的进度状态（如刚满 90% 变为完成），则同步到 Store
                 CourseStore.updateLessonProgress(res.data);
             }
         }).catch(err => console.error('Sync progress failed', err));
-    }, [courseId, selectedLesson, isTeacher, CourseStore, StudentStore.schoolId, CourseStore.currentSchoolId]);
+    }, [courseId, selectedLesson, isTeacher, CourseStore]);
 
     const throttledSync = useMemo(
         () => throttle(handleProgressSyncRaw, 10000),

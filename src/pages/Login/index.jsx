@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message, Radio, Row, Col } from 'antd';
-import { UserOutlined, LockOutlined, BankOutlined, ReadOutlined, TeamOutlined, SafetyCertificateOutlined, IdcardOutlined, SafetyOutlined, MobileOutlined } from '@ant-design/icons';
+import { Form, Input, Button, message, Radio, Row, Col, Empty, Tag, Space } from 'antd';
+import { UserOutlined, LockOutlined, BankOutlined, ReadOutlined, TeamOutlined, SafetyCertificateOutlined, IdcardOutlined, SafetyOutlined, MobileOutlined, EnvironmentOutlined, ReloadOutlined } from '@ant-design/icons';
 import Store from "@/store/index.ts";
 import { login, register } from "@/http/api.ts";
 import loginBanner from "@/assets/login/login-banner.png";
@@ -13,10 +13,97 @@ import { ROLE_MAP } from "@/type/map.js";
 const Login = observer(() => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    
-    // 'login', 'roleSelect', 'register'
+
+    // 'login', 'roleSelect', 'register', 'schoolSelect'
     const [viewMode, setViewMode] = useState('login');
     const [selectedRole, setSelectedRole] = useState(null);
+    const [selectingSchoolKey, setSelectingSchoolKey] = useState('');
+    const [refreshingSchools, setRefreshingSchools] = useState(false);
+
+    const schoolOptions = Store.UserStore.availableSchools;
+    const isSchoolSelectionRequired = Store.UserStore.isSchoolSelectionRequired;
+
+    const schoolKey = (school) => {
+        return `${school.school_id}_${school.actor_type}_${school.actor_id}`;
+    };
+
+    const actorLabel = (actorType) => {
+        return actorType === 1 ? '老师' : '学生';
+    };
+
+    const handleSelectSchool = useCallback(async (school, autoSelect = false) => {
+        const key = schoolKey(school);
+        try {
+            setSelectingSchoolKey(key);
+            await Store.UserStore.selectSchool({
+                schoolId: school.school_id,
+                actorType: school.actor_type,
+            }, school.school_name);
+            message.success(autoSelect ? '已自动完成学校选择' : '选校成功');
+            navigate('/');
+        } catch (error) {
+            console.error('Select school error:', error);
+            message.error(error?.message || '选校失败，请重试');
+            if (autoSelect) {
+                setViewMode('schoolSelect');
+            }
+        } finally {
+            setSelectingSchoolKey('');
+        }
+    }, [navigate]);
+
+    const proceedAfterAuth = async (successMessage) => {
+        if (Store.UserStore.hasBusinessSession) {
+            message.success(successMessage);
+            navigate('/');
+            return;
+        }
+
+        if (!Store.UserStore.hasPendingSession) {
+            message.success(successMessage);
+            navigate('/');
+            return;
+        }
+
+        const schools = Store.UserStore.availableSchools || [];
+        if (schools.length === 1) {
+            await handleSelectSchool(schools[0], true);
+            return;
+        }
+
+        setViewMode('schoolSelect');
+        if (schools.length === 0) {
+            message.warning('暂无可用学校，请刷新学校列表或联系管理员');
+        } else {
+            message.success(successMessage);
+        }
+    };
+
+    const handleRefreshSchools = async () => {
+        try {
+            setRefreshingSchools(true);
+            await Store.UserStore.fetchAuthSchools();
+            message.success('学校列表已刷新');
+        } catch (error) {
+            console.error('Refresh schools error:', error);
+            message.error(error?.message || '获取学校列表失败');
+        } finally {
+            setRefreshingSchools(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!isSchoolSelectionRequired) {
+            return;
+        }
+
+        if (schoolOptions.length === 1) {
+            handleSelectSchool(schoolOptions[0], true);
+            return;
+        }
+
+        setViewMode('schoolSelect');
+    }, [isSchoolSelectionRequired, schoolOptions, handleSelectSchool]);
 
     const onLoginFinish = async (values) => {
         try {
@@ -25,10 +112,8 @@ const Login = observer(() => {
             const res = await login(account, pwd);
 
             if (res.code === 200 || res.code === 0) {
-                message.success('登录成功');
                 Store.UserStore.applyAuthResponse(res);
-
-                navigate('/');
+                await proceedAfterAuth('登录成功');
             } else {
                 message.error(res.msg || '登录失败');
             }
@@ -43,12 +128,13 @@ const Login = observer(() => {
         try {
             setLoading(true);
             const { name, sex, account, password, code, inviteCode } = values;
-            
+
             const payload = {
                 name,
                 role_id: selectedRole,
                 sex,
                 account,
+                pwd: password,
                 password,
                 code,
                 inviteCode
@@ -57,10 +143,8 @@ const Login = observer(() => {
             const res = await register(payload);
 
             if (res.code === 200 || res.code === 0) {
-                message.success('注册成功');
                 Store.UserStore.applyAuthResponse(res);
-
-                navigate('/');
+                await proceedAfterAuth('注册成功');
             } else {
                 message.error(res.msg || '注册失败');
             }
@@ -126,6 +210,54 @@ const Login = observer(() => {
                                 <a href="#" onClick={(e) => { e.preventDefault(); setViewMode('roleSelect'); }}>注册账号</a>
                             </div>
                         </Form>
+                    </div>
+                )}
+
+                {viewMode === 'schoolSelect' && (
+                    <div className="role-select-wrapper">
+                        <div className="login-header animate__animated animate__fadeInRight">
+                            <h2>选择学校身份</h2>
+                            <p>登录成功，请先选择一个学校身份进入系统</p>
+                        </div>
+                        <div className="role-cards">
+                            {schoolOptions.length > 0 ? schoolOptions.map((school, index) => {
+                                const key = schoolKey(school);
+                                return (
+                                    <div className="role-card animate__animated animate__fadeInRight" style={{ animationDelay: `${0.1 + index * 0.1}s` }} key={key}>
+                                        <div className="role-icon"><EnvironmentOutlined /></div>
+                                        <div className="role-info" style={{ flex: 1 }}>
+                                            <h3>{school.school_name}</h3>
+                                            <p>
+                                                <Tag color={school.actor_type === 1 ? 'blue' : 'green'} style={{ marginInlineEnd: 8 }}>
+                                                    {actorLabel(school.actor_type)}
+                                                </Tag>
+                                                <span>ID: {school.school_id}</span>
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="primary"
+                                            loading={selectingSchoolKey === key}
+                                            onClick={() => handleSelectSchool(school)}
+                                        >
+                                            进入
+                                        </Button>
+                                    </div>
+                                );
+                            }) : (
+                                <Empty
+                                    description="暂无可用学校身份"
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                />
+                            )}
+                        </div>
+                        <div className="back-login animate__animated animate__fadeInRight" style={{ animationDelay: '0.4s' }}>
+                            <Space size={16}>
+                                <Button icon={<ReloadOutlined />} onClick={handleRefreshSchools} loading={refreshingSchools}>
+                                    刷新学校
+                                </Button>
+                                <a href="#" onClick={(e) => { e.preventDefault(); setViewMode('login'); }}>返回登录</a>
+                            </Space>
+                        </div>
                     </div>
                 )}
 
@@ -198,14 +330,14 @@ const Login = observer(() => {
                                     </Form.Item>
                                 </Col>
                             </Row>
-                            
+
                             <Form.Item
                                 name="account"
                                 rules={[{ required: true, message: '请输入手机号!' }]}
                             >
                                 <Input prefix={<MobileOutlined />} placeholder="请输入手机号(作为账号)" />
                             </Form.Item>
-                            
+
                             <Form.Item
                                 name="password"
                                 rules={[{ required: true, message: '请输入密码!' }]}

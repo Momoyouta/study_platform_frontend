@@ -15,10 +15,26 @@ const instance = axios.create({
 // 请求拦截器：自动注入 token
 instance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        const hasAuthHeader = !!config.headers?.Authorization;
+        if (hasAuthHeader) {
+            return config;
+        }
+
+        const businessToken = localStorage.getItem('access_token');
+        const pendingToken = localStorage.getItem('pending_token');
+        const requestPath = String(config.url || '');
+
+        const isSelectSchoolApi = requestPath.includes('/auth/selectSchool');
+        const isSchoolsApi = requestPath.includes('/auth/schools');
+
+        const token = isSelectSchoolApi
+            ? (pendingToken || '')
+            : (isSchoolsApi ? (businessToken || pendingToken || '') : (businessToken || ''));
+
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
+
         return config;
     },
     (error) => {

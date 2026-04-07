@@ -1,9 +1,14 @@
 import { makeAutoObservable } from "mobx";
 import { ROLE_MAP } from "@/type/map.js";
 import {
+    ActorType,
+    AuthSchoolOptionDto,
+    AuthUserProfile,
+    BusinessUserProfile,
     CurrentUserInfoDto,
     CurrentUserProfile,
     Role,
+    UserSelectSchoolRequestDto,
 } from "@/type/user";
 
 type RootStoreLike = {
@@ -23,67 +28,91 @@ type ApiEnvelope<T> = {
     data?: T;
 };
 
-type AuthPayload = {
-    token?: string;
-    valid?: boolean;
-    userProfile?: CurrentUserProfile;
+type AuthSchoolOptionLike = AuthSchoolOptionDto | {
+    schoolId?: string;
+    schoolName?: string;
+    actorType?: number;
+    actorId?: string;
 };
 
-const TOKEN_STORAGE_KEY = 'access_token';
+type AuthPayload = {
+    pendingToken?: string;
+    schools?: AuthSchoolOptionLike[];
+    selectableSchools?: AuthSchoolOptionLike[];
+    token?: string;
+    valid?: boolean;
+    userProfile?: AuthUserProfile;
+};
+
+type StoredActorContext = {
+    actorType: ActorType | null;
+    actorId: string;
+};
+
+type ApplyAuthOptions = {
+    keepToken?: boolean;
+    schoolNameHint?: string;
+};
+
+const BUSINESS_TOKEN_STORAGE_KEY = 'access_token';
+const PENDING_TOKEN_STORAGE_KEY = 'pending_token';
 const ROLE_STORAGE_KEY = 'user_role';
 const USER_INFO_STORAGE_KEY = 'user_info';
 const USER_ROLES_STORAGE_KEY = 'user_roles';
 const SCHOOL_NAME_STORAGE_KEY = 'school_name';
 const SCHOOL_ID_STORAGE_KEY = 'school_id';
+const SCHOOL_OPTIONS_STORAGE_KEY = 'school_options';
+const ACTOR_CONTEXT_STORAGE_KEY = 'actor_context';
 const LEGACY_USER_INFO_STORAGE_KEY = 'user_base_info';
 
 export class User {
-    // 根 store 引用，用于跨 store 协同更新
     private rootStore: RootStoreLike;
-    // 用户 ID
-    userId: string = '';
-    // 用户姓名
-    userName: string = '';
-    // 用户 role_id 原始字符串
-    roleId: string = '';
-    // 性别
-    sex: boolean | null = null;
-    // 账号
-    account: string = '';
-    // 手机号
-    phone: string = '';
-    // 头像地址
-    avatar: string = '';
-    // 创建时间
-    createTime: string = '';
-    // 更新时间
-    updateTime: string = '';
-    // 用户状态
-    status: number | null = null;
-    // 角色列表
-    roles: Role[] = [];
-    // 学校名称
-    schoolName: string = '';
-    // 学校 ID
-    schoolId: string = '';
-    // 当前主角色（学生/老师）
-    role: string | null = localStorage.getItem(ROLE_STORAGE_KEY);
-    // 访问令牌
-    token: string | null = localStorage.getItem(TOKEN_STORAGE_KEY);
 
-    // 初始化响应式能力并从本地缓存恢复数据
+    userId: string = '';
+    userName: string = '';
+    roleId: string = '';
+    sex: boolean | null = null;
+    account: string = '';
+    phone: string = '';
+    avatar: string = '';
+    createTime: string = '';
+    updateTime: string = '';
+    status: number | null = null;
+    roles: Role[] = [];
+    schoolName: string = '';
+    schoolId: string = '';
+
+    role: string | null = localStorage.getItem(ROLE_STORAGE_KEY);
+    token: string | null = localStorage.getItem(BUSINESS_TOKEN_STORAGE_KEY);
+    pendingToken: string | null = localStorage.getItem(PENDING_TOKEN_STORAGE_KEY);
+
+    // actorId 仅在 UserStore 内部使用，不对业务模块透出。
+    actorType: ActorType | null = null;
+    actorId: string = '';
+    availableSchools: AuthSchoolOptionDto[] = [];
+
     constructor(rootStore: RootStoreLike) {
         this.rootStore = rootStore;
         makeAutoObservable(this);
         this.hydrateFromStorage();
     }
 
-    // 页面展示名（无数据时回退默认值）
     get displayName() {
         return this.userName || 'userName';
     }
 
-    // 从 localStorage 恢复用户相关数据
+    get hasBusinessSession() {
+        return !!this.token && !!this.schoolId;
+    }
+
+    get hasPendingSession() {
+        return !!this.pendingToken;
+    }
+
+    get isSchoolSelectionRequired() {
+        return !!this.pendingToken && !this.hasBusinessSession;
+    }
+
     private hydrateFromStorage() {
         this.removeLegacyStorage();
 
@@ -101,9 +130,13 @@ export class User {
         this.roles = this.parseStorage<Role[]>(USER_ROLES_STORAGE_KEY) || [];
         this.schoolName = localStorage.getItem(SCHOOL_NAME_STORAGE_KEY) || '';
         this.schoolId = localStorage.getItem(SCHOOL_ID_STORAGE_KEY) || '';
+        this.availableSchools = this.parseStorage<AuthSchoolOptionDto[]>(SCHOOL_OPTIONS_STORAGE_KEY) || [];
+
+        const actorContext = this.parseStorage<StoredActorContext>(ACTOR_CONTEXT_STORAGE_KEY);
+        this.actorType = actorContext?.actorType === 1 || actorContext?.actorType === 2 ? actorContext.actorType : null;
+        this.actorId = actorContext?.actorId || '';
     }
 
-    // 安全解析本地缓存，解析失败时自动清理脏数据
     private parseStorage<T>(storageKey: string): T | null {
         const raw = localStorage.getItem(storageKey);
         if (!raw) {
@@ -118,12 +151,10 @@ export class User {
         }
     }
 
-    // 清理遗留的旧版本缓存键
     private removeLegacyStorage() {
         localStorage.removeItem(LEGACY_USER_INFO_STORAGE_KEY);
     }
 
-    // 从 userProfile 中推断当前主角色（优先 roles，其次 role_id）
     private resolvePrimaryRole(profile: CurrentUserProfile) {
         const fromRoles = profile.roles?.find((roleItem) => {
             return roleItem?.id === ROLE_MAP.STUDENT || roleItem?.id === ROLE_MAP.TEACHER;
@@ -137,7 +168,6 @@ export class User {
         return roleCandidates.find((item) => item === ROLE_MAP.STUDENT || item === ROLE_MAP.TEACHER) || null;
     }
 
-    // 兼容 roleInfo.{studentInfo/teacherInfo} 与旧平铺字段
     private resolveRoleProfiles(profile: CurrentUserProfile) {
         return {
             studentInfo: profile.roleInfo?.studentInfo ?? profile.studentInfo ?? null,
@@ -145,17 +175,110 @@ export class User {
         };
     }
 
-    // 统一提取认证接口有效载荷（兼容 envelope 与直出两种格式）
+    private resolveRoleFromActorType(actorType: ActorType | null | undefined) {
+        if (actorType === 1) {
+            return ROLE_MAP.TEACHER;
+        }
+        if (actorType === 2) {
+            return ROLE_MAP.STUDENT;
+        }
+        return null;
+    }
+
+    private resolveActorTypeFromRole(role: string | null | undefined): ActorType | null {
+        if (role === ROLE_MAP.TEACHER) {
+            return 1;
+        }
+        if (role === ROLE_MAP.STUDENT) {
+            return 2;
+        }
+        return null;
+    }
+
+    private normalizeSchoolOption(rawSchool: AuthSchoolOptionLike | null | undefined): AuthSchoolOptionDto | null {
+        if (!rawSchool) {
+            return null;
+        }
+
+        const schoolId = (rawSchool as any).school_id || (rawSchool as any).schoolId || '';
+        const schoolName = (rawSchool as any).school_name || (rawSchool as any).schoolName || '';
+        const actorId = (rawSchool as any).actor_id || (rawSchool as any).actorId || '';
+        const actorTypeRaw = (rawSchool as any).actor_type ?? (rawSchool as any).actorType;
+        const actorTypeNum = Number(actorTypeRaw);
+
+        if (!schoolId || !schoolName || !actorId || (actorTypeNum !== 1 && actorTypeNum !== 2)) {
+            return null;
+        }
+
+        return {
+            school_id: String(schoolId),
+            school_name: String(schoolName),
+            actor_type: actorTypeNum as ActorType,
+            actor_id: String(actorId),
+        };
+    }
+
     private extractAuthPayload(response: ApiEnvelope<AuthPayload> | AuthPayload | undefined | null) {
         const payload = ((response as ApiEnvelope<AuthPayload>)?.data ?? response ?? {}) as AuthPayload;
+
+        const hasPendingSchoolsField = Object.prototype.hasOwnProperty.call(payload, 'schools')
+            || Object.prototype.hasOwnProperty.call(payload, 'selectableSchools');
+        const pendingToken = payload.pendingToken || (hasPendingSchoolsField ? payload.token : undefined);
+        const rawSchools = payload.schools || payload.selectableSchools || [];
+        const schools = rawSchools
+            .map((item) => this.normalizeSchoolOption(item))
+            .filter((item): item is AuthSchoolOptionDto => !!item);
+
         return {
+            pendingToken,
+            schools,
             token: payload.token,
             valid: payload.valid,
             userProfile: payload.userProfile,
         };
     }
 
-    // 清空内存中的用户字段
+    private isBusinessProfile(profile: AuthUserProfile): profile is BusinessUserProfile {
+        return !('user' in (profile as any));
+    }
+
+    private dedupeSchools(schools: AuthSchoolOptionDto[]) {
+        const map = new Map<string, AuthSchoolOptionDto>();
+        (schools || []).forEach((school) => {
+            const key = `${school.school_id}_${school.actor_type}_${school.actor_id}`;
+            if (!map.has(key)) {
+                map.set(key, school);
+            }
+        });
+        return Array.from(map.values());
+    }
+
+    private resolveSchoolNameById(schoolId: string, actorType?: ActorType | null) {
+        const exact = this.availableSchools.find((item) => {
+            if (actorType) {
+                return item.school_id === schoolId && item.actor_type === actorType;
+            }
+            return item.school_id === schoolId;
+        });
+
+        return exact?.school_name || '';
+    }
+
+    private setActorContext(actorType: ActorType | null, actorId: string) {
+        this.actorType = actorType;
+        this.actorId = actorId || '';
+        localStorage.setItem(ACTOR_CONTEXT_STORAGE_KEY, JSON.stringify({
+            actorType: this.actorType,
+            actorId: this.actorId,
+        }));
+    }
+
+    private clearActorContext() {
+        this.actorType = null;
+        this.actorId = '';
+        localStorage.removeItem(ACTOR_CONTEXT_STORAGE_KEY);
+    }
+
     private clearUserFields() {
         this.userId = '';
         this.userName = '';
@@ -169,7 +292,27 @@ export class User {
         this.status = null;
     }
 
-    // 将后端 DTO（snake_case）映射为 store 驼峰字段并持久化
+    private clearBusinessSession() {
+        this.token = null;
+        this.clearUserFields();
+        this.roles = [];
+        this.schoolName = '';
+        this.schoolId = '';
+        this.role = null;
+        this.clearActorContext();
+
+        localStorage.removeItem(BUSINESS_TOKEN_STORAGE_KEY);
+        localStorage.removeItem(ROLE_STORAGE_KEY);
+        localStorage.removeItem(USER_INFO_STORAGE_KEY);
+        localStorage.removeItem(USER_ROLES_STORAGE_KEY);
+        localStorage.removeItem(SCHOOL_NAME_STORAGE_KEY);
+        localStorage.removeItem(SCHOOL_ID_STORAGE_KEY);
+        localStorage.removeItem(LEGACY_USER_INFO_STORAGE_KEY);
+
+        this.rootStore.StudentStore.clearProfile();
+        this.rootStore.TeacherStore.clearProfile();
+    }
+
     setUserFromDto(dto: CurrentUserInfoDto | null) {
         if (!dto) {
             this.clearUserFields();
@@ -202,25 +345,21 @@ export class User {
         }));
     }
 
-    // 更新角色列表并持久化
     setRoles(roles: Role[]) {
         this.roles = roles;
         localStorage.setItem(USER_ROLES_STORAGE_KEY, JSON.stringify(roles || []));
     }
 
-    // 更新学校名称并持久化
     setSchoolName(schoolName: string) {
         this.schoolName = schoolName || '';
         localStorage.setItem(SCHOOL_NAME_STORAGE_KEY, this.schoolName);
     }
 
-    // 更新学校 ID 并持久化
     setSchoolId(schoolId: string) {
         this.schoolId = schoolId || '';
         localStorage.setItem(SCHOOL_ID_STORAGE_KEY, this.schoolId);
     }
 
-    // 更新当前主角色并持久化
     setRole(role: string | null) {
         this.role = role;
         if (role) {
@@ -230,40 +369,46 @@ export class User {
         localStorage.removeItem(ROLE_STORAGE_KEY);
     }
 
-    // 更新 token 并持久化
     setToken(token: string) {
         this.token = token;
-        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+        localStorage.setItem(BUSINESS_TOKEN_STORAGE_KEY, token);
     }
 
-    // 统一处理登录/注册/jwtAuth 响应并分发到各 store
-    applyAuthResponse(response: ApiEnvelope<AuthPayload> | AuthPayload | undefined | null, options?: { keepToken?: boolean }) {
-        const payload = this.extractAuthPayload(response);
-
-        if (payload.token && !options?.keepToken) {
-            this.setToken(payload.token);
-        }
-
-        if (payload.valid === false) {
-            this.clearAuth();
+    setPendingToken(pendingToken: string | null) {
+        this.pendingToken = pendingToken;
+        if (pendingToken) {
+            localStorage.setItem(PENDING_TOKEN_STORAGE_KEY, pendingToken);
             return;
         }
+        localStorage.removeItem(PENDING_TOKEN_STORAGE_KEY);
+    }
 
-        if (!payload.userProfile) {
-            return;
-        }
+    setAvailableSchools(schools: AuthSchoolOptionDto[]) {
+        this.availableSchools = this.dedupeSchools(schools || []);
+        localStorage.setItem(SCHOOL_OPTIONS_STORAGE_KEY, JSON.stringify(this.availableSchools));
+    }
 
-        const profile = payload.userProfile;
-        this.setUserFromDto(profile.user || null);
-        this.setRoles(profile.roles || []);
-        this.setSchoolName(profile.school_name || '');
+    setPendingSession(pendingToken: string, schools: AuthSchoolOptionDto[]) {
+        this.clearBusinessSession();
+        this.setPendingToken(pendingToken);
+        this.setAvailableSchools(schools || []);
+    }
 
-        const primaryRole = this.resolvePrimaryRole(profile);
+    private applyProfileFromLegacy(userProfile: CurrentUserProfile) {
+        this.setUserFromDto(userProfile.user || null);
+        this.setRoles(userProfile.roles || []);
+        this.setSchoolName(userProfile.school_name || '');
+
+        const primaryRole = this.resolvePrimaryRole(userProfile);
         this.setRole(primaryRole);
 
-        const { studentInfo, teacherInfo } = this.resolveRoleProfiles(profile);
+        const { studentInfo, teacherInfo } = this.resolveRoleProfiles(userProfile);
         const schoolId = teacherInfo?.school_id || studentInfo?.school_id || '';
         this.setSchoolId(schoolId);
+
+        const actorType = teacherInfo ? 1 : (studentInfo ? 2 : this.resolveActorTypeFromRole(primaryRole));
+        const actorId = teacherInfo?.teacher_id || studentInfo?.student_id || '';
+        this.setActorContext(actorType, actorId);
 
         if (primaryRole === ROLE_MAP.STUDENT && studentInfo) {
             this.rootStore.StudentStore.setFromDto(studentInfo);
@@ -293,33 +438,153 @@ export class User {
         this.rootStore.TeacherStore.clearProfile();
     }
 
-    // 清理认证态（内存 + 本地缓存）并清空角色扩展信息
-    clearAuth() {
-        this.token = null;
-        this.clearUserFields();
-        this.roles = [];
-        this.schoolName = '';
-        this.schoolId = '';
-        this.role = null;
+    private applyProfileFromBusiness(userProfile: BusinessUserProfile, schoolNameHint?: string) {
+        const roleFromActor = this.resolveRoleFromActorType(userProfile.actor_type);
+        const primaryRole = roleFromActor || this.resolvePrimaryRole({
+            user: {
+                id: userProfile.id,
+                name: userProfile.name,
+                role_id: userProfile.role_id,
+                sex: this.sex ?? true,
+                account: userProfile.account,
+                avatar: this.avatar,
+            },
+            roles: [],
+            school_name: '',
+        });
 
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        localStorage.removeItem(ROLE_STORAGE_KEY);
-        localStorage.removeItem(USER_INFO_STORAGE_KEY);
-        localStorage.removeItem(USER_ROLES_STORAGE_KEY);
-        localStorage.removeItem(SCHOOL_NAME_STORAGE_KEY);
-        localStorage.removeItem(SCHOOL_ID_STORAGE_KEY);
-        localStorage.removeItem(LEGACY_USER_INFO_STORAGE_KEY);
+        const schoolName = userProfile.school_name
+            || schoolNameHint
+            || this.resolveSchoolNameById(userProfile.current_school_id, userProfile.actor_type);
 
-        this.rootStore.StudentStore.clearProfile();
+        this.setUserFromDto({
+            id: userProfile.id,
+            name: userProfile.name,
+            role_id: userProfile.role_id,
+            sex: this.sex ?? true,
+            account: userProfile.account,
+            phone: this.phone,
+            avatar: this.avatar,
+            create_time: this.createTime,
+            update_time: this.updateTime,
+            status: this.status ?? undefined,
+        });
+        this.setRoles([]);
+        this.setRole(primaryRole);
+        this.setSchoolId(userProfile.current_school_id || '');
+        this.setSchoolName(schoolName || '');
+        this.setActorContext(userProfile.actor_type, userProfile.actor_id || '');
+
+        if (userProfile.actor_type === 1) {
+            this.rootStore.TeacherStore.setFromDto({
+                teacher_id: userProfile.actor_id,
+                school_id: userProfile.current_school_id,
+                school_name: schoolName,
+                user_id: userProfile.id,
+            });
+            this.rootStore.StudentStore.clearProfile();
+            return;
+        }
+
+        this.rootStore.StudentStore.setFromDto({
+            student_id: userProfile.actor_id,
+            school_id: userProfile.current_school_id,
+            school_name: schoolName,
+            user_id: userProfile.id,
+        });
         this.rootStore.TeacherStore.clearProfile();
     }
 
-    // 兼容旧调用方的方法别名
+    applyAuthResponse(response: ApiEnvelope<AuthPayload> | AuthPayload | undefined | null, options?: ApplyAuthOptions) {
+        const payload = this.extractAuthPayload(response);
+
+        if (payload.pendingToken) {
+            this.setPendingSession(payload.pendingToken, payload.schools || []);
+            return;
+        }
+
+        if (payload.token && !options?.keepToken) {
+            this.setToken(payload.token);
+        }
+
+        if (payload.valid === false) {
+            this.clearAuth();
+            return;
+        }
+
+        if (!payload.userProfile) {
+            return;
+        }
+
+        this.setPendingToken(null);
+
+        if (this.isBusinessProfile(payload.userProfile)) {
+            this.applyProfileFromBusiness(payload.userProfile, options?.schoolNameHint);
+            return;
+        }
+
+        this.applyProfileFromLegacy(payload.userProfile);
+    }
+
+    async fetchAuthSchools() {
+        const { getAuthSchools } = await import('@/http/api');
+        const res: any = await getAuthSchools();
+        if (res?.code !== undefined && res.code !== 0 && res.code !== 200) {
+            throw new Error(res?.msg || '获取学校列表失败');
+        }
+
+        const rawSchoolList = Array.isArray(res?.data)
+            ? res.data
+            : (Array.isArray(res?.data?.list) ? res.data.list : []);
+        const nextSchools = rawSchoolList
+            .map((item: AuthSchoolOptionLike) => this.normalizeSchoolOption(item))
+            .filter((item: AuthSchoolOptionDto | null): item is AuthSchoolOptionDto => !!item);
+
+        this.setAvailableSchools(nextSchools);
+        return this.availableSchools;
+    }
+
+    async selectSchool(selection: UserSelectSchoolRequestDto, schoolNameHint?: string) {
+        const { selectSchool } = await import('@/http/api');
+        const schoolId = selection.schoolId || selection.school_id || '';
+        const actorType = selection.actorType ?? selection.actor_type;
+        const res: any = await selectSchool({
+            schoolId,
+            actorType,
+        });
+        if (res?.code !== undefined && res.code !== 0 && res.code !== 200) {
+            throw new Error(res?.msg || '选校失败');
+        }
+        this.applyAuthResponse(res, { schoolNameHint });
+        return res;
+    }
+
+    async switchSchool(selection: UserSelectSchoolRequestDto, schoolNameHint?: string) {
+        const { switchSchool } = await import('@/http/api');
+        const schoolId = selection.schoolId || selection.school_id || '';
+        const actorType = selection.actorType ?? selection.actor_type;
+        const res: any = await switchSchool({
+            schoolId,
+            actorType,
+        });
+        if (res?.code !== undefined && res.code !== 0 && res.code !== 200) {
+            throw new Error(res?.msg || '切校失败');
+        }
+        this.applyAuthResponse(res, { schoolNameHint });
+        return res;
+    }
+
+    clearAuth() {
+        this.setPendingToken(null);
+        this.availableSchools = [];
+        localStorage.removeItem(SCHOOL_OPTIONS_STORAGE_KEY);
+        this.clearBusinessSession();
+    }
+
     clearToken() {
         this.clearAuth();
     }
 
-    // store 重置入口
     reset() {
         this.clearAuth();
     }

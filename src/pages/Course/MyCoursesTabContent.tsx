@@ -18,7 +18,7 @@ interface MyCoursesTabContentProps {
 }
 
 const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContentProps) => {
-	const { CourseStore, UserStore, StudentStore, TeacherStore } = useStore();
+	const { CourseStore, UserStore, TeacherStore } = useStore();
 	const [keyword, setKeyword] = useState('');
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -38,15 +38,12 @@ const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContent
 				CourseStore.fetchMyCreatedCourses({
 					page: 1,
 					pageSize: 10,
-					school_id: TeacherStore.schoolId,
 					keyword: currentKeyword
 				});
 			} else {
 				CourseStore.fetchTeacherCourses({
 					page: 1,
 					pageSize: 10,
-					teacher_id: TeacherStore.teacherId,
-					school_id: TeacherStore.schoolId,
 					keyword: currentKeyword
 				});
 			}
@@ -54,8 +51,6 @@ const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContent
 			CourseStore.fetchStudentCourses({
 				page: 1,
 				pageSize: 10,
-				student_id: StudentStore.studentId,
-				school_id: StudentStore.schoolId,
 				keyword: currentKeyword
 			});
 		}
@@ -63,7 +58,7 @@ const MyCoursesTabContent = observer(({ mode = 'teaching' }: MyCoursesTabContent
 
 	useEffect(() => {
 		refreshList();
-	}, [CourseStore, UserStore.role, StudentStore.studentId, TeacherStore.teacherId, StudentStore.schoolId, TeacherStore.schoolId, mode]);
+	}, [CourseStore, UserStore.role, mode]);
 
 	const courseColumns = useMemo(() => {
 		if (screens.xxl) return 4;

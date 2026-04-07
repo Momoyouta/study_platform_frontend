@@ -130,7 +130,7 @@ export class Course {
     /**
      * 用户端查询老师所教课程列表
      */
-    async fetchTeacherCourses(params: { page: number; pageSize: number; teacher_id: string; school_id?: string; keyword?: string }) {
+    async fetchTeacherCourses(params: { page?: number; pageSize?: number; keyword?: string }) {
         this.loading = true;
         try {
             const res: any = await listTeacherCoursesUser(params);
@@ -173,7 +173,7 @@ export class Course {
     /**
      * 用户端查询学生所学课程列表
      */
-    async fetchStudentCourses(params: { page: number; pageSize: number; student_id: string; school_id?: string; keyword?: string }) {
+    async fetchStudentCourses(params: { page?: number; pageSize?: number; keyword?: string }) {
         this.loading = true;
         try {
             const res: any = await listStudentCoursesUser(params);
@@ -265,7 +265,7 @@ export class Course {
         }
     }
 
-    async fetchLearningProgress(params: { schoolId: string; courseId: string }) {
+    async fetchLearningProgress(params: { courseId: string }) {
         try {
             const res: any = await getLearningProgress(params);
             if (res?.code === 200) {

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Avatar, Layout, Menu, message, Grid, Button, Modal, Form, Input, Switch } from 'antd';
+import { Avatar, Layout, Menu, message, Grid, Button, Modal, Form, Input, Switch, Empty, Radio } from 'antd';
 import {
   AppstoreOutlined,
   BookOutlined,
@@ -49,6 +49,8 @@ const DashboardLayout = observer(() => {
   const screens = useBreakpoint();
   const userName = Store.UserStore.displayName || '未命名用户';
   const userAvatarSrc = Store.UserStore.avatar ? buildFileViewUrl(Store.UserStore.avatar) || undefined : undefined;
+  const currentSchoolId = Store.UserStore.schoolId;
+  const hasBusinessSession = Store.UserStore.hasBusinessSession;
   const isCourseMenus = location.pathname === '/courseDetail' || location.pathname.startsWith('/courseDetail/');
   const userRole = Store.UserStore.role;
   const isCourseCreator = Store.CourseStore.isCourseCreator;
@@ -56,6 +58,33 @@ const DashboardLayout = observer(() => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [isSwitchSchoolOpen, setIsSwitchSchoolOpen] = useState(false);
+  const [switchSchoolLoading, setSwitchSchoolLoading] = useState(false);
+  const [switchingSchool, setSwitchingSchool] = useState(false);
+  const [selectedSchoolKey, setSelectedSchoolKey] = useState('');
+
+  const schoolOptions = Store.UserStore.availableSchools;
+  const currentActorType = Store.UserStore.actorType || (userRole === ROLE_MAP.TEACHER ? 1 : (userRole === ROLE_MAP.STUDENT ? 2 : null));
+
+  const toSchoolKey = (school) => `${school.school_id}_${school.actor_type}_${school.actor_id}`;
+
+  const currentSchoolOption = useMemo(() => {
+    return schoolOptions.find((school) => {
+      if (school.school_id !== currentSchoolId) {
+        return false;
+      }
+      if (!currentActorType) {
+        return true;
+      }
+      return school.actor_type === currentActorType;
+    }) || null;
+  }, [schoolOptions, currentActorType, currentSchoolId]);
+
+  useEffect(() => {
+    if (!hasBusinessSession) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate, hasBusinessSession]);
 
   const handleOpenEdit = () => {
     editForm.setFieldsValue({
@@ -157,12 +186,63 @@ const DashboardLayout = observer(() => {
   }, [isCourseMenus, location.pathname]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    Store.UserStore.clearAuth();
     resetStores();
     message.success('已退出登录');
     navigate('/login', { replace: true });
   };
 
+  const openSwitchSchoolModal = async () => {
+    setIsSwitchSchoolOpen(true);
+
+    if (currentSchoolOption) {
+      setSelectedSchoolKey(toSchoolKey(currentSchoolOption));
+    }
+
+    if (schoolOptions.length > 0) {
+      return;
+    }
+
+    try {
+      setSwitchSchoolLoading(true);
+      await Store.UserStore.fetchAuthSchools();
+    } catch (error) {
+      message.error(error?.message || '获取学校列表失败');
+    } finally {
+      setSwitchSchoolLoading(false);
+    }
+  };
+
+  const handleSwitchSchoolConfirm = async () => {
+    const targetSchool = schoolOptions.find((school) => toSchoolKey(school) === selectedSchoolKey);
+    if (!targetSchool) {
+      message.warning('请先选择要切换的学校');
+      return;
+    }
+
+    const isSameSchool = targetSchool.school_id === currentSchoolId && targetSchool.actor_type === currentActorType;
+    if (isSameSchool) {
+      setIsSwitchSchoolOpen(false);
+      return;
+    }
+
+    try {
+      setSwitchingSchool(true);
+      await Store.UserStore.switchSchool({
+        schoolId: targetSchool.school_id,
+        actorType: targetSchool.actor_type,
+      }, targetSchool.school_name);
+      Store.CourseStore.reset();
+      Store.HomeworkStore.reset();
+      message.success('切换学校成功');
+      setIsSwitchSchoolOpen(false);
+      navigate('/', { replace: true });
+    } catch (error) {
+      message.error(error?.message || '切换学校失败，请稍后重试');
+    } finally {
+      setSwitchingSchool(false);
+    }
+  };
   const menuItems = currentMenus.map((item) => ({
     key: item.key,
     icon: item.icon,
@@ -179,6 +259,7 @@ const DashboardLayout = observer(() => {
           userName={userName}
           avatarSrc={userAvatarSrc}
           onAccount={() => navigate('/account')}
+          onSwitchSchool={openSwitchSchoolModal}
           onLogout={handleLogout}
         />
       </Header>
@@ -263,6 +344,67 @@ const DashboardLayout = observer(() => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="切换学校"
+        open={isSwitchSchoolOpen}
+        onCancel={() => setIsSwitchSchoolOpen(false)}
+        onOk={handleSwitchSchoolConfirm}
+        okText="确认切换"
+        cancelText="取消"
+        confirmLoading={switchingSchool}
+        destroyOnClose
+      >
+        {switchSchoolLoading ? (
+          <div style={{ minHeight: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            加载学校列表中...
+          </div>
+        ) : (
+          <>
+            {schoolOptions.length > 0 ? (
+              <Radio.Group
+                style={{ width: '100%' }}
+                value={selectedSchoolKey}
+                onChange={(event) => setSelectedSchoolKey(event.target.value)}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {schoolOptions.map((school) => {
+                    const key = toSchoolKey(school);
+                    const checked = key === selectedSchoolKey;
+                    return (
+                      <label
+                        key={key}
+                        style={{
+                          border: checked ? '1px solid #1677ff' : '1px solid #e5eaf3',
+                          borderRadius: 10,
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                        }}
+                      >
+                        <Radio value={key} />
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#233248' }}>{school.school_name}</div>
+                          <div style={{ color: '#65758d', fontSize: 12 }}>
+                            身份：{school.actor_type === 1 ? '老师' : '学生'}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </Radio.Group>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无可切换学校"
+              />
+            )}
+          </>
+        )}
       </Modal>
     </Layout>
   );

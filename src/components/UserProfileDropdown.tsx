@@ -8,6 +8,7 @@ type UserProfileDropdownProps = {
     avatarSrc?: string;
     className?: string;
     onAccount: () => void;
+    onSwitchSchool?: () => void;
     onLogout: () => void;
 };
 
@@ -16,18 +17,32 @@ const UserProfileDropdown = ({
     avatarSrc,
     className,
     onAccount,
+    onSwitchSchool,
     onLogout,
 }: UserProfileDropdownProps) => {
+    const menuItems: MenuProps['items'] = [
+        { key: 'account', label: '账号管理' },
+    ];
+
+    if (onSwitchSchool) {
+        menuItems.push({ key: 'switch-school', label: '切换学校' });
+    }
+
+    menuItems.push({ key: 'logout', label: '退出登录' });
+
     const menu: MenuProps = {
-        items: [
-            { key: 'account', label: '账号管理' },
-            { key: 'logout', label: '退出登录' },
-        ],
+        items: menuItems,
         onClick: ({ key }) => {
             if (key === 'account') {
                 onAccount();
                 return;
             }
+
+            if (key === 'switch-school') {
+                onSwitchSchool?.();
+                return;
+            }
+
             onLogout();
         },
     };

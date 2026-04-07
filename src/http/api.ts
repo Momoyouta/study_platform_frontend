@@ -9,6 +9,46 @@ import {
     type UpdatePasswordPayload,
     type UpdatePhonePayload,
 } from "@/type/api";
+export type ActorType = 1 | 2;
+
+export type AuthSchoolOption = {
+    school_id: string;
+    school_name: string;
+    actor_type: ActorType;
+    actor_id: string;
+};
+
+export type PendingAuthResponseData = {
+    pendingToken: string;
+    schools: AuthSchoolOption[];
+};
+
+export type SelectSchoolRequest = {
+    schoolId?: string;
+    school_id?: string;
+    actorType?: ActorType;
+    actor_type?: ActorType;
+};
+
+const normalizeSelectSchoolPayload = (data: SelectSchoolRequest) => {
+    return {
+        schoolId: data.schoolId || data.school_id || '',
+        actorType: data.actorType ?? data.actor_type,
+    };
+};
+
+export type StudentAssignmentResultDto = {
+    total_score: string;
+    teacher_comment?: string;
+    details: Array<{
+        question_id: string;
+        score_earned: string;
+        is_correct: number | null;
+        teacher_comment?: string;
+        standard_answer: Record<string, any>;
+        analysis: Record<string, any>;
+    }>;
+};
 
 export const login = (account: string, pwd: string) => {
     return http.post('/auth/login', {
@@ -19,6 +59,18 @@ export const login = (account: string, pwd: string) => {
 
 export const register = (data: any) => {
     return http.post('/auth/register', data);
+}
+
+export const selectSchool = (data: SelectSchoolRequest) => {
+    return http.post('/auth/selectSchool', normalizeSelectSchoolPayload(data));
+}
+
+export const switchSchool = (data: SelectSchoolRequest) => {
+    return http.post('/auth/switchSchool', normalizeSelectSchoolPayload(data));
+}
+
+export const getAuthSchools = () => {
+    return http.get('/auth/schools');
 }
 
 export const jwtAuth = (accessToken: string) => {
@@ -62,11 +114,11 @@ export const updatePassword = (data: UpdatePasswordPayload) => {
     return http.put('/user/profile/updatePassword', data);
 }
 
-export const listTeacherCoursesUser = (params: { page: number, pageSize: number, teacher_id: string, school_id?: string, keyword?: string }) => {
+export const listTeacherCoursesUser = (params: { page?: number, pageSize?: number, keyword?: string, teacher_id?: string, school_id?: string }) => {
     return http.get('/course/listTeacherCoursesUser', { params });
 }
 
-export const listStudentCoursesUser = (params: { page: number, pageSize: number, student_id: string, school_id?: string, keyword?: string }) => {
+export const listStudentCoursesUser = (params: { page?: number, pageSize?: number, keyword?: string, student_id?: string, school_id?: string }) => {
     return http.get('/course/listStudentCoursesUser', { params });
 }
 
@@ -268,14 +320,13 @@ export const syncProgress = (data: {
     chapterId: string;
     lessonId: string;
     progress_percent: number;
-    schoolId?: string;
 }) => {
     return http.post('/course/sync-progress', data);
 }
 
 export const getLearningProgress = (data: {
-    schoolId: string;
     courseId: string;
+    schoolId?: string;
 }) => {
     return http.post('/course/getLearningProgress', data);
 }

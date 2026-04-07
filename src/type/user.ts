@@ -5,6 +5,28 @@ export type Role = {
     level: number;
 };
 
+export type ActorType = 1 | 2;
+
+export type AuthSchoolOptionDto = {
+    school_id: string;
+    school_name: string;
+    actor_type: ActorType;
+    actor_id: string;
+};
+
+export type AuthSchoolOptionWireDto = AuthSchoolOptionDto | {
+    schoolId: string;
+    schoolName: string;
+    actorType: ActorType;
+    actorId: string;
+};
+
+export type PendingBaseUserInfoDto = {
+    userId: string;
+    userRoles?: string[];
+    userName?: string;
+};
+
 export type CurrentUserInfoDto = {
     id: string;
     name: string;
@@ -51,14 +73,53 @@ export type CurrentUserProfile = {
     school_name: string;
 };
 
-export type UserLoginResponseDto = {
+export type BusinessUserProfile = {
+    id: string;
+    name: string;
+    account: string;
+    role_id: string;
+    current_school_id: string;
+    actor_type: ActorType;
+    actor_id: string;
+    school_name?: string;
+};
+
+export type AuthUserProfile = CurrentUserProfile | BusinessUserProfile;
+
+export type UserPendingAuthResponseDto = {
+    pendingToken?: string;
+    token?: string;
+    schools?: AuthSchoolOptionWireDto[];
+    selectableSchools?: AuthSchoolOptionWireDto[];
+    baseUserInfo?: PendingBaseUserInfoDto;
+};
+
+export type UserSelectSchoolRequestDto = {
+    schoolId?: string;
+    school_id?: string;
+    actorType?: ActorType;
+    actor_type?: ActorType;
+};
+
+export type UserSelectSchoolResponseDto = {
     token: string;
-    userProfile: CurrentUserProfile;
+    userProfile: AuthUserProfile;
+};
+
+export type UserLoginResponseDto = {
+    pendingToken?: string;
+    token?: string;
+    schools?: AuthSchoolOptionWireDto[];
+    selectableSchools?: AuthSchoolOptionWireDto[];
+    baseUserInfo?: PendingBaseUserInfoDto;
 };
 
 export type UserRegisterResponseDto = {
-    token: string;
-    userProfile: CurrentUserProfile;
+    pendingToken?: string;
+    token?: string;
+    schools?: AuthSchoolOptionWireDto[];
+    selectableSchools?: AuthSchoolOptionWireDto[];
+    baseUserInfo?: PendingBaseUserInfoDto;
 };
 
 export type UserJwtAuthResponseDto = {

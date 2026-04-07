@@ -3,6 +3,7 @@ import { Tabs } from 'antd';
 import BasicProfileTabContent from './BasicProfileTabContent.tsx';
 import AvatarTabContent from './AvatarTabContent.tsx';
 import PasswordTabContent from './PasswordTabContent.tsx';
+import SchoolSwitchTabContent from './SchoolSwitchTabContent.tsx';
 import './index.less';
 
 const AccountManage = () => {
@@ -21,6 +22,11 @@ const AccountManage = () => {
       key: 'password',
       label: '密码管理',
       children: <PasswordTabContent />,
+    },
+    {
+      key: 'school-switch',
+      label: '切换学校',
+      children: <SchoolSwitchTabContent />,
     },
   ];
 
