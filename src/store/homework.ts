@@ -1319,21 +1319,21 @@ export class Homework {
 
     async submitHomework(_courseId: string, assignmentId: string, mode?: RoleMode) {
         const roleMode = this.resolveRoleMode(mode);
-        if (roleMode !== 'student') {
-            return false;
-        }
+        // if (roleMode !== 'student') {
+        //     return false;
+        // }
 
-        if (!assignmentId) {
-            return false;
-        }
+        // if (!assignmentId) {
+        //     return false;
+        // }
 
-        if (this.submitLoading) {
-            return false;
-        }
+        // if (this.submitLoading) {
+        //     return false;
+        // }
 
-        if (this.studentSubmissionStatus !== 0) {
-            return false;
-        }
+        // if (this.studentSubmissionStatus !== 0) {
+        //     return false;
+        // }
 
         runInAction(() => {
             this.submitLoading = true;

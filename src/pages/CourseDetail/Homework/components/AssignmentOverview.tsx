@@ -75,6 +75,7 @@ type AssignmentStatisticsData = {
 
 type AssignmentSubmissionItem = {
     id: string;
+    submission_id?: string;
     assignment_id: string;
     student_id: string;
     student_name: string;
@@ -518,6 +519,38 @@ const AssignmentOverview = ({ assignmentId, courseId, teachingGroupId, fallbackI
         navigate(`/homeworkDetail?${next.toString()}`);
     };
 
+    const goSubmissionReview = (submission: AssignmentSubmissionItem) => {
+        const submissionId = String(submission.id || submission.submission_id || '');
+        if (!submissionId) {
+            message.warning('该提交记录缺少 submission_id，暂无法进入审批');
+            return;
+        }
+
+        const assignmentTitle = String(overview?.title || fallbackItem?.title || '').trim();
+
+        const next = new URLSearchParams({
+            courseId,
+            assignmentId,
+            questionNo: '1',
+            reviewMode: 'teacherApproval',
+            submissionId,
+        });
+
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
+        }
+
+        if (submission.student_name) {
+            next.set('studentName', submission.student_name);
+        }
+
+        if (assignmentTitle) {
+            next.set('assignmentTitle', assignmentTitle);
+        }
+
+        navigate(`/homeworkDetail?${next.toString()}`);
+    };
+
     if (!assignmentId) {
         return <Empty description="请选择作业" />;
     }
@@ -668,9 +701,31 @@ const AssignmentOverview = ({ assignmentId, courseId, teachingGroupId, fallbackI
                                         locale={{ emptyText: '暂无提交记录' }}
                                         renderItem={(item) => {
                                             const statusMeta = getSubmissionStatusMeta(Number(item.status || 0));
+                                            const submissionId = String(item.id || item.submission_id || '');
+                                            const canReview = !!submissionId;
 
                                             return (
-                                                <List.Item key={item.id}>
+                                                <List.Item
+                                                    key={submissionId || `${item.student_id}_${item.submit_time || ''}`}
+                                                    className={`submission-record-item ${canReview ? 'clickable' : 'disabled'}`}
+                                                    onClick={() => {
+                                                        if (!canReview) {
+                                                            return;
+                                                        }
+                                                        goSubmissionReview(item);
+                                                    }}
+                                                    role={canReview ? 'button' : undefined}
+                                                    tabIndex={canReview ? 0 : -1}
+                                                    onKeyDown={(event) => {
+                                                        if (!canReview) {
+                                                            return;
+                                                        }
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            goSubmissionReview(item);
+                                                        }
+                                                    }}
+                                                >
                                                     <Space direction="vertical" size={4} style={{ width: '100%' }}>
                                                         <Space wrap>
                                                             <Text strong>{item.student_name || '-'}</Text>

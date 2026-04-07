@@ -15,9 +15,10 @@ type QuestionIndexSiderProps = {
     activeQuestionIndex: number;
     isTeacherMode: boolean;
     isPublished: boolean;
+    withStudentResultSummary?: boolean;
     userAnswers: Record<string, any>;
     onQuestionSelect: (index: number) => void;
-    onTeacherDragEnd: (event: DragEndEvent) => void;
+    onTeacherDragEnd?: (event: DragEndEvent) => void;
 };
 
 const SortableQuestionGridItem = ({
@@ -62,6 +63,7 @@ const QuestionIndexSider = ({
     activeQuestionIndex,
     isTeacherMode,
     isPublished,
+    withStudentResultSummary = false,
     userAnswers,
     onQuestionSelect,
     onTeacherDragEnd,
@@ -148,9 +150,13 @@ const QuestionIndexSider = ({
     const content = <div className="question-index-container">{renderGroups()}</div>;
 
     return (
-        <Sider width={280} className="homework-index-sider" theme="light">
+        <Sider
+            width={280}
+            className={`homework-index-sider ${withStudentResultSummary ? 'with-student-result-summary' : ''}`}
+            theme="light"
+        >
             {isTeacherMode ? (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTeacherDragEnd}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTeacherDragEnd || (() => {})}>
                     {content}
                 </DndContext>
             ) : (

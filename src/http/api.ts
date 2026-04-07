@@ -340,6 +340,14 @@ export const listTeacherAssignmentSubmissions = (data: {
     return http.post('/teacher/assignment/submissions', data);
 }
 
+export const getTeacherAssignmentSubjectiveSubmission = (data: {
+    assignment_id: string;
+    submission_id: string;
+    teaching_group_id?: string;
+}) => {
+    return http.post('/teacher/assignment/submissions/subjective', data);
+}
+
 export const gradeTeacherAssignmentSubmission = (data: {
     submission_id: string;
     question_id: string;
