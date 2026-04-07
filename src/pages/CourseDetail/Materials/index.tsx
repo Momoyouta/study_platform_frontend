@@ -29,7 +29,7 @@ import {
     CloudUploadOutlined,
 } from '@ant-design/icons';
 import FileChunkUpload from '@/components/FileChunkUpload';
-import { ChunkUploadType } from '@/http/api';
+import { ChunkUploadType } from '@/type/api';
 import { downloadFile } from '@/utils/download';
 import type { ColumnType } from 'antd/es/table';
 import Title from 'antd/es/typography/Title';
@@ -163,7 +163,6 @@ const Materials = observer(() => {
             setCurrentPage(1);
             loadMaterials(1, searchText);
         } catch (err: any) {
-            message.error(err?.message || '自动绑定失败，请稍后重试');
         } finally {
             setUploading(false);
             setBindingFileId(null);
@@ -213,7 +212,6 @@ const Materials = observer(() => {
             loadMaterials(currentPage, searchText);
         } catch (err: any) {
             if (err?.errorFields) return;
-            message.error(err?.message || '重命名失败');
         }
     };
 
@@ -241,7 +239,7 @@ const Materials = observer(() => {
                                 message.success('已彻底删除');
                                 loadMaterials(currentPage, searchText);
                             } catch (err: any) {
-                                message.error(err?.message || '删除失败');
+                                console.error('Delete material failed:', err);
                             }
                             Modal.destroyAll();
                         }}

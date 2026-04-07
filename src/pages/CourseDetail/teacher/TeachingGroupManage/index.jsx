@@ -242,7 +242,6 @@ const TeachingGroupManage = ({ courseId, schoolId }) => {
             })
             .catch((error) => {
                 console.error('Failed to fetch teaching groups', error);
-                message.error('获取教学组列表失败');
             })
             .finally(() => {
                 setLoading(false);
@@ -288,7 +287,6 @@ const TeachingGroupManage = ({ courseId, schoolId }) => {
             })
             .catch((error) => {
                 console.error('Failed to query school teachers', error);
-                message.error('查询老师失败');
             })
             .finally(() => {
                 if (requestId === teacherQueryRequestRef.current) {
@@ -416,7 +414,6 @@ const TeachingGroupManage = ({ courseId, schoolId }) => {
                 return;
             }
             console.error('Failed to save teaching group', error);
-            message.error(editingGroup ? '教学组更新失败' : '教学组创建失败');
         } finally {
             setGroupSaving(false);
         }
@@ -448,7 +445,6 @@ const TeachingGroupManage = ({ courseId, schoolId }) => {
                     })
                     .catch((error) => {
                         console.error('Failed to delete teaching group', error);
-                        message.error('教学组删除失败');
                     });
             },
         });

@@ -62,7 +62,19 @@
 - 安装库必须使用pnpm
 - 全局less变量：src/theme/variables.less
 - api调用使用.then链，非必要不使用try catch
+- 接口调用发生异常时，catch 中不要再调用 message.error/message.warning/message.info/message.success；错误提示统一由 src/http/http.js 的响应拦截器处理
 - 使用antd组件库
+## 作业模块架构 (Homework Module)
+
+针对 `HomeworkDetail` 详情组件，项目采用了基于角色视觉的任务驱动型分层架构。我们将复杂的作业逻辑拆分为四个独立的视图组件，以提高代码的可维护性和扩展性：
+
+- **StudentAnswerView (学生作答视角)**: 专门用于学生未提交前的答题状态。支持保存草稿、提交、实时保存答案及图片上传。
+- **StudentResultView (学生批阅后结果视角)**: 学生提交并经由教师批改后的只读界面。直接展示总分、单题得分、标准答案和解析。
+- **TeacherEditView (老师编辑题目视角)**: 教师创建或修改作业的编辑环境。支持题目拖拽排序、增删题目、设置作业时间及发布作业。
+- **TeacherReviewView (老师批改题目视角)**: 教师针对特定学生提交记录的批阅界面。支持主观题打分、撰写评语。
+
+这些组件通过 `src/pages/HomeworkDetail/utils.ts` 共享基础的数据解析工具函数。
+
 ## 快速开始
 
 ### 1. 环境准备

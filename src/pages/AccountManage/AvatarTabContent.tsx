@@ -57,7 +57,7 @@ const AvatarTabContent = observer(() => {
             setTempAvatarPath('');
             message.success('头像更新成功');
         } catch (error: any) {
-            message.error(error?.message || '保存头像失败，请稍后重试');
+            console.error('Save avatar failed:', error);
         } finally {
             setSaving(false);
         }

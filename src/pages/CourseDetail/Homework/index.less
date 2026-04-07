@@ -257,6 +257,33 @@
         }
     }
 
+    .submission-record-card {
+        margin-top: 16px;
+        border-radius: 10px;
+    }
+
+    .submission-record-item {
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+
+        &.clickable {
+            cursor: pointer;
+
+            &:hover {
+                background-color: #f6f8ff;
+            }
+
+            &:focus-within {
+                background-color: #eef3ff;
+            }
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+    }
+
     .time-edit-tip {
         margin-top: 12px;
         color: #8c8c8c;

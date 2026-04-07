@@ -119,7 +119,6 @@ const ResourcePlaza = observer(() => {
             }
         } catch (error: any) {
             console.error('Failed to fetch files', error);
-            message.error(error?.message || '网络错误');
         } finally {
             setLoading(false);
         }

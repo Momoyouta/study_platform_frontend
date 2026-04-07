@@ -33,7 +33,6 @@ const ApplySchool = () => {
             setSubmitted(true);
         } catch (error) {
             console.error('Submit failed:', error);
-            message.error('提交失败，请稍后重试');
         } finally {
             setLoading(false);
         }

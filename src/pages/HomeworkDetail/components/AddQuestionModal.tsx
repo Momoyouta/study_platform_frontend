@@ -70,10 +70,21 @@ const AddQuestionModal = ({ open, onCancel, onConfirm }: AddQuestionModalProps) 
                 <Form.Item
                     name="count"
                     label="数量"
-                    rules={[{ required: true, message: '请输入添加数量' }]}
+                    rules={[
+                        { required: true, message: '请输入添加数量' },
+                        {
+                            validator: (_, value) => {
+                                const count = Number(value);
+                                if (Number.isInteger(count) && count > 0) {
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(new Error('数量必须为正整数'));
+                            },
+                        },
+                    ]}
                     extra="添加后可点击右侧题号逐题编辑内容"
                 >
-                    <InputNumber min={1} max={20} style={{ width: '100%' }} />
+                    <InputNumber min={1} max={20} precision={0} style={{ width: '100%' }} />
                 </Form.Item>
             </Form>
         </Modal>

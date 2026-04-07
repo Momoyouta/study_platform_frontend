@@ -1,16 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Breadcrumb,
     Button,
     Card,
+    Collapse,
     DatePicker,
     Descriptions,
     Empty,
     Form,
     Input,
+    List,
     Modal,
+    Pagination,
     Progress,
+    Select,
     Space,
     Statistic,
     Tag,
@@ -69,9 +73,22 @@ type AssignmentStatisticsData = {
     }>;
 };
 
+type AssignmentSubmissionItem = {
+    id: string;
+    submission_id?: string;
+    assignment_id: string;
+    student_id: string;
+    student_name: string;
+    status: number;
+    total_score?: string | number | null;
+    submit_time?: string | null;
+    grade_time?: string | null;
+};
+
 type AssignmentOverviewProps = {
     assignmentId: string;
     courseId: string;
+    teachingGroupId?: string;
     fallbackItem?: HomeworkListItem;
     onBackToList: () => void;
 };
@@ -88,6 +105,24 @@ const STATUS_COLOR_MAP: Record<string, string> = {
     未发布: 'default',
     进行中: 'processing',
     已结束: 'default',
+};
+
+const SUBMISSION_GRADED_FILTER_OPTIONS = [
+    { label: '全部', value: 'all' },
+    { label: '已批改', value: 'graded' },
+    { label: '待批改', value: 'pending' },
+] as const;
+
+const getSubmissionStatusMeta = (status: number) => {
+    if (status === 2) {
+        return { text: '已批改', color: 'success' as const };
+    }
+
+    if (status === 1) {
+        return { text: '待批改', color: 'warning' as const };
+    }
+
+    return { text: '未知状态', color: 'default' as const };
 };
 
 const getStatusText = (publishStatus: number, startTime: string, deadline: string) => {
@@ -227,13 +262,21 @@ const mergeScoreRateToTypeStats = (
     });
 };
 
-const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList }: AssignmentOverviewProps) => {
+const AssignmentOverview = ({ assignmentId, courseId, teachingGroupId, fallbackItem, onBackToList }: AssignmentOverviewProps) => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [overview, setOverview] = useState<AssignmentOverviewData | null>(null);
     const [statistics, setStatistics] = useState<AssignmentStatisticsData | null>(null);
-    const [submissionsCount, setSubmissionsCount] = useState(0);
+    const [submissionSummary, setSubmissionSummary] = useState({ submitted: 0, graded: 0 });
+    const [submissionList, setSubmissionList] = useState<AssignmentSubmissionItem[]>([]);
+    const [submissionTotal, setSubmissionTotal] = useState(0);
+    const [submissionLoading, setSubmissionLoading] = useState(false);
+    const [submissionSearchInput, setSubmissionSearchInput] = useState('');
+    const [submissionStudentName, setSubmissionStudentName] = useState('');
+    const [submissionGradedFilter, setSubmissionGradedFilter] = useState<'all' | 'graded' | 'pending'>('all');
+    const [submissionPage, setSubmissionPage] = useState(1);
+    const [submissionPageSize, setSubmissionPageSize] = useState(10);
     const [titleModalOpen, setTitleModalOpen] = useState(false);
     const [timeModalOpen, setTimeModalOpen] = useState(false);
     const [titleForm] = Form.useForm<{ title: string }>();
@@ -247,18 +290,69 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
             setLoading(true);
 
             try {
-                const [detailRes, statisticsRes, submissionsRes]: any[] = await Promise.all([
+                const submissionSummaryBasePayload = {
+                    assignment_id: assignmentId,
+                    ...(teachingGroupId ? { teaching_group_id: teachingGroupId } : {}),
+                };
+
+                const loadSubmissionSummaryByStatus = async () => {
+                    let page = 1;
+                    const pageSize = 100;
+                    let submitted = 0;
+                    let graded = 0;
+                    let total = 0;
+
+                    while (true) {
+                        const response: any = await listTeacherAssignmentSubmissions({
+                            ...submissionSummaryBasePayload,
+                            page,
+                            pageSize,
+                        });
+
+                        if (response?.code !== 200) {
+                            return { submitted: 0, graded: 0 };
+                        }
+
+                        const list = Array.isArray(response?.data?.list) ? response.data.list : [];
+                        total = Number(response?.data?.total || 0);
+
+                        list.forEach((item: any) => {
+                            const status = Number(item?.status || 0);
+                            if (status === 1 || status === 2) {
+                                submitted += 1;
+                            }
+                            if (status === 2) {
+                                graded += 1;
+                            }
+                        });
+
+                        if (page * pageSize >= total || list.length === 0) {
+                            break;
+                        }
+
+                        page += 1;
+                    }
+
+                    return { submitted, graded };
+                };
+
+                const [detailRes, statisticsRes, submissionSummaryResult]: any[] = await Promise.all([
                     getTeacherAssignmentDetail({ assignment_id: assignmentId }),
-                    getTeacherAssignmentStatistics({ assignment_id: assignmentId }),
-                    listTeacherAssignmentSubmissions({ assignment_id: assignmentId }),
+                    getTeacherAssignmentStatistics({
+                        assignment_id: assignmentId,
+                        ...(teachingGroupId ? { teaching_group_id: teachingGroupId } : {}),
+                    }),
+                    loadSubmissionSummaryByStatus(),
                 ]);
 
                 const detailData = detailRes?.code === 200 ? detailRes.data : null;
                 const statisticsData = statisticsRes?.code === 200 ? statisticsRes.data : null;
-                const submissionsData = Array.isArray(submissionsRes?.data) ? submissionsRes.data : [];
 
                 setStatistics(statisticsData || null);
-                setSubmissionsCount(submissionsData.length);
+                setSubmissionSummary({
+                    submitted: Number(submissionSummaryResult?.submitted || 0),
+                    graded: Number(submissionSummaryResult?.graded || 0),
+                });
 
                 if (!detailData) {
                     setOverview(buildFallbackOverview(assignmentId, fallbackItem));
@@ -283,15 +377,58 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
             } catch (_error) {
                 setOverview(buildFallbackOverview(assignmentId, fallbackItem));
                 setStatistics(null);
-                setSubmissionsCount(0);
-                message.warning('概览数据拉取失败，已展示最小回退数据');
+                setSubmissionSummary({ submitted: 0, graded: 0 });
             } finally {
                 setLoading(false);
             }
         };
 
         fetchOverview();
-    }, [assignmentId, fallbackItem?.endTime, fallbackItem?.isPublished, fallbackItem?.questionCount, fallbackItem?.startTime, fallbackItem?.title]);
+    }, [assignmentId, teachingGroupId, fallbackItem?.endTime, fallbackItem?.isPublished, fallbackItem?.questionCount, fallbackItem?.startTime, fallbackItem?.title]);
+
+    useEffect(() => {
+        if (!assignmentId) {
+            setSubmissionList([]);
+            setSubmissionTotal(0);
+            return;
+        }
+
+        const fetchSubmissionList = async () => {
+            setSubmissionLoading(true);
+
+            try {
+                const isGraded = submissionGradedFilter === 'all'
+                    ? undefined
+                    : (submissionGradedFilter === 'graded' ? 1 : 0);
+
+                const response: any = await listTeacherAssignmentSubmissions({
+                    assignment_id: assignmentId,
+                    ...(teachingGroupId ? { teaching_group_id: teachingGroupId } : {}),
+                    ...(submissionStudentName ? { studentName: submissionStudentName } : {}),
+                    ...(isGraded !== undefined ? { isGraded } : {}),
+                    page: submissionPage,
+                    pageSize: submissionPageSize,
+                });
+
+                if (response?.code !== 200) {
+                    setSubmissionList([]);
+                    setSubmissionTotal(0);
+                    return;
+                }
+
+                const list = Array.isArray(response?.data?.list) ? response.data.list : [];
+                setSubmissionList(list as AssignmentSubmissionItem[]);
+                setSubmissionTotal(Number(response?.data?.total || 0));
+            } catch (_error) {
+                setSubmissionList([]);
+                setSubmissionTotal(0);
+            } finally {
+                setSubmissionLoading(false);
+            }
+        };
+
+        fetchSubmissionList();
+    }, [assignmentId, teachingGroupId, submissionStudentName, submissionGradedFilter, submissionPage, submissionPageSize]);
 
     useEffect(() => {
         if (!overview) {
@@ -301,13 +438,6 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
     }, [overview?.title, titleForm]);
 
     const statusText = overview?.display_status || '未发布';
-
-    const completionPercent = useMemo(() => {
-        if (!statistics?.total_students) {
-            return 0;
-        }
-        return Math.round((Number(statistics.submitted_count || 0) / Number(statistics.total_students || 1)) * 100);
-    }, [statistics?.submitted_count, statistics?.total_students]);
 
     const handleSaveTitle = async () => {
         const values = await titleForm.validateFields();
@@ -376,7 +506,49 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
     };
 
     const goHomeworkDetail = () => {
-        navigate(`/homeworkDetail?courseId=${courseId}&assignmentId=${assignmentId}&questionNo=1`);
+        const next = new URLSearchParams({
+            courseId,
+            assignmentId,
+            questionNo: '1',
+        });
+
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
+        }
+
+        navigate(`/homeworkDetail?${next.toString()}`);
+    };
+
+    const goSubmissionReview = (submission: AssignmentSubmissionItem) => {
+        const submissionId = String(submission.id || submission.submission_id || '');
+        if (!submissionId) {
+            message.warning('该提交记录缺少 submission_id，暂无法进入审批');
+            return;
+        }
+
+        const assignmentTitle = String(overview?.title || fallbackItem?.title || '').trim();
+
+        const next = new URLSearchParams({
+            courseId,
+            assignmentId,
+            questionNo: '1',
+            reviewMode: 'teacherApproval',
+            submissionId,
+        });
+
+        if (teachingGroupId) {
+            next.set('teachingGroupId', teachingGroupId);
+        }
+
+        if (submission.student_name) {
+            next.set('studentName', submission.student_name);
+        }
+
+        if (assignmentTitle) {
+            next.set('assignmentTitle', assignmentTitle);
+        }
+
+        navigate(`/homeworkDetail?${next.toString()}`);
     };
 
     if (!assignmentId) {
@@ -479,19 +651,115 @@ const AssignmentOverview = ({ assignmentId, courseId, fallbackItem, onBackToList
                 <Card title="作业提交统计" bordered={false}>
                     <Space size={24}>
                         <Statistic title="总人数" value={Number(statistics?.total_students || 0)} suffix="人" />
-                        <Statistic title="已提交" value={Number(statistics?.submitted_count || 0)} suffix="人" />
-                        <Statistic title="已批改" value={Number(statistics?.graded_count || 0)} suffix="人" />
-                    </Space>
-                </Card>
-
-                <Card title="提交进度概览" bordered={false}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        <Statistic title="提交记录数" value={submissionsCount} suffix="条" />
-                        <Progress percent={completionPercent} />
-                        <Text type="secondary">提交进度按统计接口 total_students/submitted_count 计算</Text>
+                        <Statistic title="已提交" value={Number(submissionSummary.submitted || 0)} suffix="人" />
+                        <Statistic title="已批改" value={Number(submissionSummary.graded || 0)} suffix="人" />
                     </Space>
                 </Card>
             </div>
+
+                <Collapse
+                    style={{marginTop: '16px'}}
+                    items={[
+                        {
+                            key: 'submission-records',
+                            label: '提交记录',
+                            children: (
+                                <div>
+                                    <Space wrap style={{ marginBottom: 12 }}>
+                                        <Input.Search
+                                            allowClear
+                                            placeholder="按学生名前缀搜索"
+                                            value={submissionSearchInput}
+                                            style={{ width: 260 }}
+                                            onChange={(event) => {
+                                                const nextValue = event.target.value;
+                                                setSubmissionSearchInput(nextValue);
+                                                if (!nextValue.trim()) {
+                                                    setSubmissionStudentName('');
+                                                    setSubmissionPage(1);
+                                                }
+                                            }}
+                                            onSearch={(value) => {
+                                                setSubmissionStudentName(String(value || '').trim());
+                                                setSubmissionPage(1);
+                                            }}
+                                        />
+                                        <Select
+                                            value={submissionGradedFilter}
+                                            style={{ width: 160 }}
+                                            options={[...SUBMISSION_GRADED_FILTER_OPTIONS]}
+                                            onChange={(value) => {
+                                                setSubmissionGradedFilter(value);
+                                                setSubmissionPage(1);
+                                            }}
+                                        />
+                                    </Space>
+
+                                    <List
+                                        loading={submissionLoading}
+                                        dataSource={submissionList}
+                                        locale={{ emptyText: '暂无提交记录' }}
+                                        renderItem={(item) => {
+                                            const statusMeta = getSubmissionStatusMeta(Number(item.status || 0));
+                                            const submissionId = String(item.id || item.submission_id || '');
+                                            const canReview = !!submissionId;
+
+                                            return (
+                                                <List.Item
+                                                    key={submissionId || `${item.student_id}_${item.submit_time || ''}`}
+                                                    className={`submission-record-item ${canReview ? 'clickable' : 'disabled'}`}
+                                                    onClick={() => {
+                                                        if (!canReview) {
+                                                            return;
+                                                        }
+                                                        goSubmissionReview(item);
+                                                    }}
+                                                    role={canReview ? 'button' : undefined}
+                                                    tabIndex={canReview ? 0 : -1}
+                                                    onKeyDown={(event) => {
+                                                        if (!canReview) {
+                                                            return;
+                                                        }
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            goSubmissionReview(item);
+                                                        }
+                                                    }}
+                                                >
+                                                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                                                        <Space wrap>
+                                                            <Text strong>{item.student_name || '-'}</Text>
+                                                            <Tag color={statusMeta.color}>{statusMeta.text}</Tag>
+                                                            <Text type="secondary">得分：{item.total_score ?? '-'}</Text>
+                                                        </Space>
+                                                        <Space wrap size={16}>
+                                                            <Text type="secondary">提交时间：{formatTimestamp(String(item.submit_time || ''))}</Text>
+                                                            <Text type="secondary">批改时间：{formatTimestamp(String(item.grade_time || ''))}</Text>
+                                                        </Space>
+                                                    </Space>
+                                                </List.Item>
+                                            );
+                                        }}
+                                    />
+
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                                        <Pagination
+                                            current={submissionPage}
+                                            pageSize={submissionPageSize}
+                                            total={submissionTotal}
+                                            showSizeChanger
+                                            showTotal={(total) => `共 ${total} 条`}
+                                            onChange={(page, pageSize) => {
+                                                setSubmissionPage(page);
+                                                setSubmissionPageSize(pageSize);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
 
             <Modal
                 title="编辑作业名"

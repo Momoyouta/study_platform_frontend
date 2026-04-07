@@ -1,12 +1,14 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { ROLE_MAP } from "@/type/map.js";
-import { toViewFileUrl } from "@/utils/fileUrl";
 import {
     type AssignmentQuestionTypeCode,
     type TeacherAssignmentQuestionPayload,
     type StudentAssignmentAnswerPayload,
     type StudentAssignmentResultDto,
     type TeacherAssignmentSaveRequest,
+} from "@/type/api";
+import { toViewFileUrl } from "@/utils/fileUrl";
+import {
     listStudentAssignments,
     listTeacherAssignments,
     getStudentAssignmentDetail,
@@ -265,6 +267,11 @@ const formatUnixSeconds = (value: any) => {
     }
 
     return formatDateTime(date);
+};
+
+const normalizeTeachingGroupId = (value?: string) => {
+    const raw = String(value || '').trim();
+    return raw || undefined;
 };
 
 const resolveStatusByWindow = (startTime: string, endTime: string): HomeworkListItem['status'] => {
@@ -956,7 +963,7 @@ export class Homework {
         return answers;
     }
 
-    private buildTeacherSavePayload(courseId: string, assignmentId?: string): TeacherAssignmentSaveRequest | null {
+    private buildTeacherSavePayload(courseId: string, assignmentId?: string, teachingGroupId?: string): TeacherAssignmentSaveRequest | null {
         const startTime = toUnixSecondsString(this.teacherStartTime);
         const endTime = toUnixSecondsString(this.teacherEndTime);
 
@@ -965,9 +972,11 @@ export class Homework {
         }
 
         const title = String(this.detail?.title || '').trim();
+        const normalizedTeachingGroupId = normalizeTeachingGroupId(teachingGroupId);
         const payload: TeacherAssignmentSaveRequest = {
             assignment_id: assignmentId || this.currentAssignmentId || undefined,
             course_id: courseId,
+            ...(normalizedTeachingGroupId ? { teaching_group_id: normalizedTeachingGroupId } : {}),
             title: title || '未命名作业',
             start_time: startTime,
             deadline: endTime,
@@ -1010,8 +1019,12 @@ export class Homework {
         return payload;
     }
 
-    private async saveTeacherDraftInternal(courseId: string, assignmentId?: string, options?: { reloadDetail?: boolean }) {
-        const payload = this.buildTeacherSavePayload(courseId, assignmentId);
+    private async saveTeacherDraftInternal(
+        courseId: string,
+        assignmentId?: string,
+        options?: { reloadDetail?: boolean; teachingGroupId?: string },
+    ) {
+        const payload = this.buildTeacherSavePayload(courseId, assignmentId, options?.teachingGroupId);
         if (!payload) {
             return {
                 success: false,
@@ -1217,7 +1230,13 @@ export class Homework {
             };
 
             const listItem = this.list.find((item) => item.id === detail.id);
-            const submissionStatus = listItem?.submissionStatus ?? null;
+            const detailStatus = Number(data.status);
+            const submissionStatus = Number.isInteger(detailStatus)
+                ? detailStatus
+                : (listItem?.submissionStatus ?? null);
+            const isValidSubmissionStatus = submissionStatus === 0 || submissionStatus === 1 || submissionStatus === 2;
+
+            detail.status = isValidSubmissionStatus ? submissionStatus : undefined;
 
             runInAction(() => {
                 this.setDetail(detail, 'student');
@@ -1240,7 +1259,7 @@ export class Homework {
         }
     }
 
-    async saveDraft(courseId: string, assignmentId: string, mode?: RoleMode): Promise<DraftResult> {
+    async saveDraft(courseId: string, assignmentId: string, mode?: RoleMode, teachingGroupId?: string): Promise<DraftResult> {
         const roleMode = this.resolveRoleMode(mode);
 
         runInAction(() => {
@@ -1249,13 +1268,23 @@ export class Homework {
 
         try {
             if (roleMode === 'teacher') {
-                return await this.saveTeacherDraftInternal(courseId, assignmentId, { reloadDetail: true });
+                return await this.saveTeacherDraftInternal(courseId, assignmentId, {
+                    reloadDetail: true,
+                    teachingGroupId,
+                });
             }
 
             if (!assignmentId) {
                 return {
                     success: false,
                     message: '缺少 assignment_id，无法保存学生草稿',
+                };
+            }
+
+            if (this.studentSubmissionStatus !== 0) {
+                return {
+                    success: false,
+                    message: '当前作业非未提交状态，不允许保存草稿',
                 };
             }
 
@@ -1302,6 +1331,10 @@ export class Homework {
             return false;
         }
 
+        if (this.studentSubmissionStatus !== 0) {
+            return false;
+        }
+
         runInAction(() => {
             this.submitLoading = true;
         });
@@ -1332,7 +1365,7 @@ export class Homework {
         }
     }
 
-    async publishHomework(courseId: string, assignmentId: string, mode?: RoleMode): Promise<PublishResult> {
+    async publishHomework(courseId: string, assignmentId: string, mode?: RoleMode, teachingGroupId?: string): Promise<PublishResult> {
         const roleMode = this.resolveRoleMode(mode);
         if (roleMode !== 'teacher') {
             return { success: false, message: '仅教师可发布作业' };
@@ -1354,6 +1387,7 @@ export class Homework {
         try {
             const saveResult = await this.saveTeacherDraftInternal(courseId, assignmentId || this.currentAssignmentId, {
                 reloadDetail: true,
+                teachingGroupId,
             });
             if (!saveResult.success || !saveResult.assignmentId) {
                 return {
@@ -1363,8 +1397,10 @@ export class Homework {
             }
 
             const targetAssignmentId = saveResult.assignmentId;
+            const normalizedTeachingGroupId = normalizeTeachingGroupId(teachingGroupId);
             const publishResponse: any = await publishTeacherAssignment({
                 assignment_id: targetAssignmentId,
+                ...(normalizedTeachingGroupId ? { teaching_group_id: normalizedTeachingGroupId } : {}),
             });
 
             if (publishResponse?.code !== 200) {

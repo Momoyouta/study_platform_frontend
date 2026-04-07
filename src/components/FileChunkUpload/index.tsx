@@ -8,7 +8,8 @@ import {
     FolderOpenOutlined
 } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { initChunkUploadUser, uploadChunkUser, mergeChunksUser, ChunkUploadType } from '@/http/api';
+import { initChunkUploadUser, uploadChunkUser, mergeChunksUser } from '@/http/api';
+import { ChunkUploadType } from '@/type/api';
 import HashWorker from './hash.worker?worker';
 import './index.less';
 
@@ -139,7 +140,6 @@ const FileChunkUpload = forwardRef<FileChunkUploadHandle, FileChunkUploadProps>(
         } catch (error: any) {
             setStatus(UploadStatus.ERROR);
             setStatusText(error.message || '合并出错');
-            message.error(error.message || '合并失败');
             throw error;
         }
     };
@@ -235,7 +235,6 @@ const FileChunkUpload = forwardRef<FileChunkUploadHandle, FileChunkUploadProps>(
             console.error('Upload Error:', error);
             setStatus(UploadStatus.ERROR);
             setStatusText(error.message || '上传过程中出错');
-            message.error(error.message || '上传失败');
         }
     };
 

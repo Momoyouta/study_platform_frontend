@@ -9,15 +9,18 @@ import { TYPE_NAMES } from '../constants';
 const { Sider } = Layout;
 
 type GroupItem = { question: Question; index: number };
+type StudentReviewedStatus = 'correct' | 'wrong' | 'partial';
 
 type QuestionIndexSiderProps = {
     questions: Question[];
     activeQuestionIndex: number;
     isTeacherMode: boolean;
     isPublished: boolean;
+    withStudentResultSummary?: boolean;
+    studentReviewedStatusMap?: Record<string, StudentReviewedStatus>;
     userAnswers: Record<string, any>;
     onQuestionSelect: (index: number) => void;
-    onTeacherDragEnd: (event: DragEndEvent) => void;
+    onTeacherDragEnd?: (event: DragEndEvent) => void;
 };
 
 const SortableQuestionGridItem = ({
@@ -62,6 +65,8 @@ const QuestionIndexSider = ({
     activeQuestionIndex,
     isTeacherMode,
     isPublished,
+    withStudentResultSummary = false,
+    studentReviewedStatusMap,
     userAnswers,
     onQuestionSelect,
     onTeacherDragEnd,
@@ -125,13 +130,15 @@ const QuestionIndexSider = ({
                             {items.map((item) => {
                                 const isActive = activeQuestionIndex === item.index;
                                 const isAnswered = userAnswers[item.question.id] !== undefined;
+                                const reviewedStatus = studentReviewedStatusMap?.[item.question.id];
+                                const reviewedStatusClassName = reviewedStatus ? `review-${reviewedStatus}` : '';
 
                                 return (
                                     <div
                                         key={item.question.id}
                                         className={`question-grid-item ${isActive ? 'active' : ''} ${
                                             isAnswered ? 'answered' : ''
-                                        }`}
+                                        } ${reviewedStatusClassName}`}
                                         onClick={() => onQuestionSelect(item.index)}
                                     >
                                         {item.index + 1}
@@ -148,9 +155,13 @@ const QuestionIndexSider = ({
     const content = <div className="question-index-container">{renderGroups()}</div>;
 
     return (
-        <Sider width={280} className="homework-index-sider" theme="light">
+        <Sider
+            width={280}
+            className={`homework-index-sider ${withStudentResultSummary ? 'with-student-result-summary' : ''}`}
+            theme="light"
+        >
             {isTeacherMode ? (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTeacherDragEnd}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTeacherDragEnd || (() => {})}>
                     {content}
                 </DndContext>
             ) : (

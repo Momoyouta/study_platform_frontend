@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Button, Checkbox, Input, Radio, Space } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { MdEditor } from 'md-editor-rt';
+import { MdEditor, MdPreview } from 'md-editor-rt';
 import type { Question } from '@/store/homework';
 import { getOptionLabel } from '../constants';
 
@@ -109,33 +109,41 @@ const StudentQuestionContent = ({
         case 'short':
             return (
                 <div className="short-question-wrapper">
-                    {!readonly && (
-                        <div className="student-short-toolbar">
-                            <Button
-                                icon={<UploadOutlined />}
-                                loading={shortAnswerImageUploading}
-                                onClick={() => shortAnswerImageInputRef.current?.click()}
-                            >
-                                上传作答图片
-                            </Button>
-                            <input
-                                ref={shortAnswerImageInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="student-short-hidden-input"
-                                onChange={handleShortAnswerImageUpload}
+                    {readonly ? (
+                        <MdPreview
+                            key={question.id}
+                            id={`student-short-preview-${question.id}`}
+                            modelValue={String(answer ?? '')}
+                            style={{padding: '0 8px'}}
+                        />
+                    ) : (
+                        <>
+                            <div className="student-short-toolbar">
+                                <Button
+                                    icon={<UploadOutlined />}
+                                    loading={shortAnswerImageUploading}
+                                    onClick={() => shortAnswerImageInputRef.current?.click()}
+                                >
+                                    上传作答图片
+                                </Button>
+                                <input
+                                    ref={shortAnswerImageInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="student-short-hidden-input"
+                                    onChange={handleShortAnswerImageUpload}
+                                />
+                            </div>
+                            <MdEditor
+                                key={question.id}
+                                modelValue={String(answer ?? '')}
+                                onChange={(value) => onAnswerChange(question.id, value)}
+                                onUploadImg={handleEditorUpload}
+                                noUploadImg
+                                preview={false}
                             />
-                        </div>
+                        </>
                     )}
-                    <MdEditor
-                        key={question.id}
-                        modelValue={String(answer ?? '')}
-                        onChange={(value) => onAnswerChange(question.id, value)}
-                        onUploadImg={handleEditorUpload}
-                        noUploadImg
-                        preview={false}
-                        readOnly={readonly}
-                    />
                 </div>
             );
         default:

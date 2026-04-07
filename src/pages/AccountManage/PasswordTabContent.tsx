@@ -30,7 +30,7 @@ const PasswordTabContent = () => {
             message.success('密码修改成功');
             form.resetFields();
         } catch (error: any) {
-            message.error(error?.message || '修改密码失败，请稍后重试');
+            console.error('Update password failed:', error);
         } finally {
             setLoading(false);
         }
