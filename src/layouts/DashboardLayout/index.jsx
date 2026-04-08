@@ -28,19 +28,20 @@ const { Header, Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
 
 const sideMenusHome = [
-  { key: 'home', label: '首页', path: '/', icon: <HomeOutlined /> },
-  { key: 'course', label: '课程', path: '/course', icon: <BookOutlined /> },
-  { key: 'resource-plaza', label: '资料广场', path: '/resource-plaza', icon: <AppstoreOutlined /> },
-  { key: 'stats', label: '个人统计', path: '/stats', icon: <PieChartOutlined /> },
+  { key: 'home', label: <span data-menu-id="home">首页</span>, path: '/', icon: <HomeOutlined /> },
+  { key: 'course', label: <span data-menu-id="course">课程</span>, path: '/course', icon: <BookOutlined /> },
+  { key: 'resource-plaza', label: <span data-menu-id="resource-plaza">资料广场</span>, path: '/resource-plaza', icon: <AppstoreOutlined /> },
+  // { key: 'stats', label: <span data-menu-id="stats">个人统计</span>, path: '/stats', icon: <PieChartOutlined /> },
 ];
 
 const sideMenusCourse = [
-  { key: 'task', label: '任务', path: '/', icon: <CheckSquareOutlined /> },
-  { key: 'chapter', label: '章节', path: '/chapter', icon: <ReadOutlined /> },
-  { key: 'homework', label: '作业', path: '/homework', icon: <FileDoneOutlined /> },
-  { key: 'materials', label: '资料', path: '/materials', icon: <FolderOpenOutlined /> },
-  { key: 'studyRecord', label: '学习记录', path: '/studyRecord', icon: <ScheduleOutlined />, roles: [ROLE_MAP.STUDENT] },
-  { key: 'teachingGroup', label: '教学组', path: '/teachingGroup', icon: <TeamOutlined />, roles: [ROLE_MAP.TEACHER] },
+  { key: 'task', label: <span data-menu-id="task">任务</span>, path: '/', icon: <CheckSquareOutlined /> },
+  { key: 'chapter', label: <span data-menu-id="chapter">章节</span>, path: '/chapter', icon: <ReadOutlined /> },
+  { key: 'homework', label: <span data-menu-id="homework">作业</span>, path: '/homework', icon: <FileDoneOutlined /> },
+  { key: 'materials', label: <span data-menu-id="materials">资料</span>, path: '/materials', icon: <FolderOpenOutlined /> },
+  { key: 'studyRecord', label: <span data-menu-id="study-record">学习记录</span>, path: '/studyRecord', icon: <ScheduleOutlined />, roles: [ROLE_MAP.STUDENT] },
+  { key: 'courseData', label: <span data-menu-id="course-data">课程数据</span>, path: '/courseData', icon: <PieChartOutlined />, roles: [ROLE_MAP.TEACHER] },
+  { key: 'teachingGroup', label: <span data-menu-id="teaching-group">教学组</span>, path: '/teachingGroup', icon: <TeamOutlined />, roles: [ROLE_MAP.TEACHER] },
 ];
 
 const DashboardLayout = observer(() => {
@@ -182,6 +183,7 @@ const DashboardLayout = observer(() => {
       if (location.pathname.startsWith('/courseDetail/homework')) return 'homework';
       if (location.pathname.startsWith('/courseDetail/materials')) return 'materials';
       if (location.pathname.startsWith('/courseDetail/studyRecord')) return 'studyRecord';
+      if (location.pathname.startsWith('/courseDetail/courseData')) return 'courseData';
       if (location.pathname.startsWith('/courseDetail/teachingGroup')) return 'teachingGroup';
       return '';
     }
@@ -413,12 +415,12 @@ const DashboardLayout = observer(() => {
                         }}
                       >
                         <Radio value={key}>
-                          <span style={{ fontWeight: 600, color: '#233248', marginRight:'16px' }}>{getSchoolName(school)}</span>
+                          <span style={{ fontWeight: 600, color: '#233248', marginRight: '16px' }}>{getSchoolName(school)}</span>
                           <span style={{ color: '#65758d', fontSize: 12 }}>
                             身份：{actorType === 1 ? '老师' : (actorType === 2 ? '学生' : '未知')}
                           </span>
                         </Radio>
-                        
+
                       </label>
                     );
                   })}

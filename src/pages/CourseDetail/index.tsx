@@ -18,6 +18,7 @@ import Homework from './Homework';
 import TeacherTask from './teacher/Task';
 import TeacherChapter from './teacher/Chapter';
 import TeacherTeachingGroup from './teacher/TeachingGroup';
+import TeacherCourseData from './teacher/CourseData';
 
 import './index.less';
 
@@ -29,6 +30,7 @@ const sectionMap = {
 	homework: '作业',
 	materials: '资料',
 	studyRecord: '学习记录',
+    courseData: '课程数据',
 	teachingGroup: '教学组',
 };
 
@@ -85,6 +87,9 @@ const CourseDetail = observer(() => {
 			if (sectionKey === 'teachingGroup') {
 				return <TeacherTeachingGroup courseId={courseId} creatorId={creatorId} schoolId={schoolId} />;
 			}
+            if (sectionKey === 'courseData' || sectionKey === 'studyRecord') {
+                return <TeacherCourseData courseId={courseId} teachingGroupId={CourseStore.currentTeachingGroupId} />;
+            }
             if (sectionKey === 'materials') {
                 return <Materials />;
             }

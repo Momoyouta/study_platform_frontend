@@ -202,44 +202,12 @@
             border-radius: 8px;
             background: #fafafa;
         }
-
-        .type-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .type-stat-item {
-            border: 1px solid #f0f0f0;
-            border-radius: 8px;
-            padding: 12px;
-            background: #fff;
-
-            .type-stat-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-weight: 600;
-                margin-bottom: 8px;
-
-                .type-icon {
-                    font-size: 16px;
-                }
-            }
-
-            .type-stat-body {
-                display: flex;
-                justify-content: space-between;
-                color: #595959;
-                margin-bottom: 8px;
-            }
-        }
     }
 
     .overview-mock-panels {
         margin-top: 16px;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(1, minmax(0, 1fr));
         gap: 16px;
 
         .ant-card {
@@ -253,6 +221,44 @@
 
             li + li {
                 margin-top: 8px;
+            }
+        }
+    }
+
+    .overview-analysis-panels {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+
+        .analysis-statistics-row {
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f7f9ff;
+        }
+
+        .submission-status-card {
+            grid-column: span 2;
+        }
+
+        .submission-status-columns {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+
+            .submission-status-column {
+                border: 1px solid #edf1f8;
+                border-radius: 8px;
+                padding: 10px;
+                background: #fff;
+
+                .submission-status-student-item {
+                    padding-inline: 0;
+                }
             }
         }
     }
@@ -295,14 +301,24 @@
     .assignment-overview-page {
         padding: 16px;
 
-        .assignment-basic-card {
-            .type-stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .overview-mock-panels {
             grid-template-columns: 1fr;
+        }
+
+        .overview-analysis-panels {
+            grid-template-columns: 1fr;
+
+            .submission-status-card {
+                grid-column: auto;
+            }
+
+            .analysis-statistics-row {
+                grid-template-columns: 1fr;
+            }
+
+            .submission-status-columns {
+                grid-template-columns: 1fr;
+            }
         }
     }
 }

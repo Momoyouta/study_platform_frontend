@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-const CourseDetailPage = lazy(() => import('../pages/CourseDetail/index.jsx'));
+const CourseDetailPage = lazy(() => import('../pages/CourseDetail/index.tsx'));
 
 const routes = [
     {
@@ -21,7 +21,7 @@ const routes = [
         children: [
             {
                 index: true,
-                component: lazy(() => import('../pages/Course/index.jsx')),
+                component: lazy(() => import('../pages/Home/index.jsx')),
             },
             {
                 path: 'course',
@@ -45,6 +45,10 @@ const routes = [
             },
             {
                 path: 'courseDetail/studyRecord',
+                component: CourseDetailPage,
+            },
+            {
+                path: 'courseDetail/courseData',
                 component: CourseDetailPage,
             },
             {

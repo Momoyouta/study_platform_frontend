@@ -1,0 +1,99 @@
+.teacher-course-data-page {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    .teacher-course-data-header {
+        border-radius: 10px;
+        border: 1px solid #edf1f8;
+    }
+
+    .teacher-course-data-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+
+        .group-progress-card {
+            grid-column: span 2;
+
+            .group-progress-summary {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .group-progress-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 12px;
+            }
+
+            .group-progress-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 12px 8px;
+                border: 1px solid #eef2f8;
+                border-radius: 12px;
+                background: #fbfcff;
+                transition: border-color 0.2s ease;
+
+                &:hover {
+                    border-color: #c6d8ff;
+                }
+            }
+
+            .group-progress-avatar {
+                background: #e8f1ff;
+                color: #1f4eb2;
+                font-weight: 600;
+            }
+
+            .group-progress-name {
+                margin-top: 8px;
+                width: 100%;
+                text-align: center;
+                font-size: 13px;
+                color: #1f2430;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .group-progress-percent {
+                margin-top: 4px;
+                font-size: 16px;
+                font-weight: 600;
+                color: #275ccf;
+            }
+
+            .group-progress-pagination {
+                margin-top: 16px;
+                display: flex;
+                justify-content: flex-end;
+            }
+        }
+    }
+}
+
+@media (max-width: 960px) {
+    .teacher-course-data-page {
+        .teacher-course-data-grid {
+            grid-template-columns: 1fr;
+
+            .group-progress-card {
+                grid-column: span 1;
+
+                .group-progress-summary {
+                    grid-template-columns: 1fr;
+                }
+
+                .group-progress-pagination {
+                    justify-content: flex-start;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,50 @@
+.question-accuracy-ranking {
+    max-height: 360px;
+    overflow: auto;
+
+    .question-accuracy-ranking-item {
+        padding-inline: 0;
+    }
+
+    .question-accuracy-ranking-row {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .rank-badge {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #ffffff;
+        background: #92a3bd;
+        flex-shrink: 0;
+
+        &.rank-1 {
+            background: #f59e0b;
+        }
+
+        &.rank-2 {
+            background: #94a3b8;
+        }
+
+        &.rank-3 {
+            background: #d97706;
+        }
+    }
+
+    .question-meta {
+        min-width: 200px;
+    }
+
+    .question-accuracy-value {
+        color: #3054c7;
+        font-weight: 600;
+    }
+}

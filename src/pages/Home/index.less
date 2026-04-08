@@ -1,110 +1,87 @@
-.course-panel {
-  height: 100%;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.course-tabs > .ant-tabs-nav {
-  margin: 0;
-  border-bottom: 1px solid #dddddd;
-}
-
-.course-tabs > .ant-tabs-nav .ant-tabs-tab {
-  margin: 0;
-  padding: 10px 0 12px;
-}
-
-.course-tabs > .ant-tabs-nav .ant-tabs-tab .ant-tabs-tab-btn {
-  font-size: 37px;
-  font-weight: 400;
-  color: #303030;
-  line-height: 1.2;
-  font-family: 'PingFang SC', 'Source Han Sans SC', 'Noto Sans SC', 'Microsoft YaHei UI', sans-serif;
-}
-
-.course-tabs > .ant-tabs-nav .ant-tabs-ink-bar {
-  background: #5b7cff;
-}
-
-.course-tabs .ant-tabs-content-holder {
-  padding-top: 16px;
-}
-
-.course-panel-toolbar {
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.course-search {
-  width: 240px;
-}
-
-.course-list {
-  margin-top: 22px;
-}
-
-.course-list .ant-list-items {
-  max-width: 900px;
-}
-
-.course-list .ant-list-item {
-  padding: 0;
-}
-
-.course-card {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.course-card .ant-card-body {
+.home-statistics-page {
   padding: 10px 12px;
 }
 
-.course-card-media {
-  height: 96px;
-  background: #cacbcc;
-  color: #606060;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
+.home-statistics-title {
+  margin-bottom: 14px !important;
 }
 
-.course-empty-wrap {
-  margin-top: 6px;
-  border: 1px dashed #d9d9d9;
-  border-radius: 10px;
-  background: #ffffff;
-  min-height: 208px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.course-card-title {
-  margin-top: 2px;
-  color: #333333;
-  font-size: 20px;
-  line-height: 1.2;
+.home-global-error {
+  margin-bottom: 12px;
+  color: #c0392b;
   font-weight: 500;
-  font-family: 'PingFang SC', 'Source Han Sans SC', 'Noto Sans SC', 'Microsoft YaHei UI', sans-serif;
 }
 
-.course-card-teacher {
-  margin-top: 4px;
-  color: #9c9c9c;
-  font-size: 14px;
-  line-height: 1.2;
-  font-weight: 400;
-  font-family: 'PingFang SC', 'Source Han Sans SC', 'Noto Sans SC', 'Microsoft YaHei UI', sans-serif;
+.home-card-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  &.single {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 460px;
+  }
+}
+
+.todo-highlight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .todo-highlight-value {
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 700;
+    color: #3554d1;
+  }
+
+  .todo-highlight-desc {
+    margin-bottom: 0;
+    color: #5f6f88;
+  }
+}
+
+.home-list-item {
+  padding-inline: 0 !important;
+}
+
+.home-list-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.continue-learning-card {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+
+  .continue-course-name {
+    font-size: 16px;
+  }
+  .continue-lesson-name {
+    font-size: 13px;
+    margin-top: -4px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .home-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
-  .course-tabs > .ant-tabs-nav .ant-tabs-tab .ant-tabs-tab-btn {
-    font-size: 24px;
+  .home-statistics-page {
+    padding: 2px;
   }
 
-  .course-search {
-    width: 100%;
+  .home-card-grid,
+  .home-card-grid.single {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
   }
 }

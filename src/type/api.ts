@@ -155,3 +155,143 @@ export enum ChunkUploadType {
     VIDEO = 1,
     NORMAL = 2,
 }
+
+export type StatisticsQueryParams = {
+    courseId?: string;
+    teachingGroupId?: string;
+    assignmentId?: string;
+    startTime?: string;
+    endTime?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+};
+
+export type TeacherTodoDto = {
+    pendingReviewCount: number;
+};
+
+export type LessonFunnelItemDto = {
+    lessonId: string;
+    lessonName: string;
+    avgProgressPercent: number;
+    learnCount: number;
+};
+
+export type ScoreBucketDto = {
+    key: string;
+    label: string;
+    count: number;
+};
+
+export type ScoreDistributionDto = {
+    avgScore: number;
+    maxScore: number;
+    minScore: number;
+    buckets: ScoreBucketDto[];
+};
+
+export type QuestionAccuracyItemDto = {
+    questionId: string;
+    questionNo: number;
+    correctRate: number;
+};
+
+export type QuestionScoreRateItemDto = {
+    questionId: string;
+    questionNo: number;
+    scoreRate: number;
+};
+
+export type PagedQuestionAccuracyDto = {
+    page: number;
+    pageSize: number;
+    total: number;
+    list: QuestionAccuracyItemDto[];
+};
+
+export type PagedQuestionScoreRateDto = {
+    page: number;
+    pageSize: number;
+    total: number;
+    list: QuestionScoreRateItemDto[];
+};
+
+export type SubmissionStatusStudentDto = {
+    studentId: string;
+    studentName: string;
+};
+
+export type SubmissionStatusDto = {
+    unsubmitted: SubmissionStatusStudentDto[];
+    submittedPendingReview: SubmissionStatusStudentDto[];
+    reviewed: SubmissionStatusStudentDto[];
+};
+
+export type StudentCourseProgressItemDto = {
+    courseId: string;
+    courseName: string;
+    progressPercent: number;
+};
+
+export type ContinueLearningDto = {
+    lessonId: string;
+    lessonName: string;
+    courseId: string;
+    courseName: string;
+    lastLearnTime: string;
+};
+
+export type TodoAssignmentItemDto = {
+    assignmentId: string;
+    title: string;
+    courseId: string;
+    courseName: string;
+    deadline?: string;
+    remainSeconds: number;
+};
+
+export type GradeHistoryItemDto = {
+    assignmentId: string;
+    title: string;
+    totalScore: number;
+    teacherComment?: string;
+};
+
+export type GroupLearningSummaryDto = {
+    courseId: string;
+    teachingGroupId: string;
+    assignmentAvgScore: number;
+    avgScoreRank: number;
+    courseLearnCount: number;
+};
+
+export type TeacherCourseGroupProgressSortBy = 'progressPercent' | 'studentName';
+export type TeacherCourseGroupProgressSortOrder = 'ASC' | 'DESC';
+
+export type TeacherCourseGroupProgressQueryParams = StatisticsQueryParams & {
+    courseId: string;
+    teachingGroupId: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: TeacherCourseGroupProgressSortBy;
+    sortOrder?: TeacherCourseGroupProgressSortOrder;
+    completedOnly?: 0 | 1;
+};
+
+export type TeacherCourseGroupProgressItemDto = {
+    studentId: string;
+    studentName: string;
+    avatarPath: string;
+    progressPercent: number;
+};
+
+export type TeacherCourseGroupProgressDto = {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalStudents: number;
+    completedStudents: number;
+    list: TeacherCourseGroupProgressItemDto[];
+};

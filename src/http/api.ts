@@ -1,10 +1,25 @@
 import http from "./http.js";
 import {
     type ActorType,
+    type ContinueLearningDto,
+    type GradeHistoryItemDto,
     type JoinSchoolRequest,
+    type LessonFunnelItemDto,
+    type PagedQuestionAccuracyDto,
+    type PagedQuestionScoreRateDto,
+    type QuestionAccuracyItemDto,
+    type QuestionScoreRateItemDto,
+    type ScoreDistributionDto,
     type SelectSchoolRequest,
+    type StatisticsQueryParams,
+    type TeacherCourseGroupProgressDto,
+    type TeacherCourseGroupProgressQueryParams,
+    type StudentCourseProgressItemDto,
     type StudentAssignmentResultDto,
+    type SubmissionStatusDto,
+    type TeacherTodoDto,
     ChunkUploadType,
+    type TodoAssignmentItemDto,
     type StudentAssignmentAnswerPayload,
     type TeacherAssignmentSaveRequest,
     type TeacherAssignmentUpdateRequest,
@@ -12,6 +27,7 @@ import {
     type UpdateBasicPayload,
     type UpdatePasswordPayload,
     type UpdatePhonePayload,
+    type GroupLearningSummaryDto,
 } from "@/type/api";
 
 const normalizeSelectSchoolPayload = (data: SelectSchoolRequest) => {
@@ -19,6 +35,60 @@ const normalizeSelectSchoolPayload = (data: SelectSchoolRequest) => {
         schoolId: data.schoolId || data.school_id || '',
         actorType: data.actorType ?? data.actor_type,
     };
+};
+
+const normalizeStatisticsQueryParams = (params: StatisticsQueryParams = {}) => {
+    const query: Record<string, string> = {};
+
+    const append = (key: keyof StatisticsQueryParams) => {
+        const value = String(params[key] || '').trim();
+        if (!value) {
+            return;
+        }
+        query[key] = value;
+    };
+
+    append('courseId');
+    append('teachingGroupId');
+    append('assignmentId');
+    append('startTime');
+    append('endTime');
+    append('sortBy');
+    append('sortOrder');
+
+    if (params.page !== undefined) {
+        query.page = String(params.page);
+    }
+    if (params.pageSize !== undefined) {
+        query.pageSize = String(params.pageSize);
+    }
+
+    return query;
+};
+
+const normalizeTeacherCourseGroupProgressQueryParams = (params: TeacherCourseGroupProgressQueryParams) => {
+    const query: Record<string, string | number> = {
+        courseId: params.courseId,
+        teachingGroupId: params.teachingGroupId,
+        page: Number(params.page || 1),
+        pageSize: Number(params.pageSize || 10),
+        sortBy: params.sortBy || 'progressPercent',
+        sortOrder: params.sortOrder || 'DESC',
+        completedOnly: params.completedOnly === 1 ? 1 : 0,
+    };
+
+    const appendOptional = (key: 'startTime' | 'endTime') => {
+        const value = String(params[key] || '').trim();
+        if (!value) {
+            return;
+        }
+        query[key] = value;
+    };
+
+    appendOptional('startTime');
+    appendOptional('endTime');
+
+    return query;
 };
 
 export const login = (account: string, pwd: string) => {
@@ -314,6 +384,97 @@ export const getLearningProgress = (data: {
 }) => {
     return http.post('/course/getLearningProgress', data);
 }
+
+// ===== 统计分析（教师端） =====
+
+export const getTeacherStatisticsTodo = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: TeacherTodoDto }> => {
+    return http.get('/teacher/statistics/todo', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsLessonFunnel = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: LessonFunnelItemDto[] }> => {
+    return http.get('/teacher/statistics/lesson-funnel', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsScoreDistribution = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: ScoreDistributionDto }> => {
+    return http.get('/teacher/statistics/score-distribution', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export type PagedQuestionAccuracyResponse = { code: number; msg: string; data: PagedQuestionAccuracyDto };
+export type PagedQuestionScoreRateResponse = { code: number; msg: string; data: PagedQuestionScoreRateDto };
+
+export const getTeacherStatisticsQuestionAccuracy = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: QuestionAccuracyItemDto[] }> => {
+    return http.get('/teacher/statistics/question-accuracy', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsObjectiveQuestionAccuracy = (params?: StatisticsQueryParams): Promise<PagedQuestionAccuracyResponse> => {
+    return http.get('/teacher/statistics/objective-question-accuracy', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsFillQuestionScoreRate = (params?: StatisticsQueryParams): Promise<PagedQuestionScoreRateResponse> => {
+    return http.get('/teacher/statistics/fill-question-score-rate', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsShortAnswerScoreRate = (params?: StatisticsQueryParams): Promise<PagedQuestionScoreRateResponse> => {
+    return http.get('/teacher/statistics/short-answer-score-rate', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsSubmissionStatus = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: SubmissionStatusDto }> => {
+    return http.get('/teacher/statistics/submission-status', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getTeacherStatisticsCourseGroupProgress = (params: TeacherCourseGroupProgressQueryParams): Promise<{ code: number; msg: string; data: TeacherCourseGroupProgressDto }> => {
+    return http.get('/teacher/statistics/course-group-progress', {
+        params: normalizeTeacherCourseGroupProgressQueryParams(params),
+    });
+};
+
+// ===== 统计分析（学生端） =====
+
+export const getStudentStatisticsMyCourses = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: StudentCourseProgressItemDto[] }> => {
+    return http.get('/student/statistics/my-courses', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getStudentStatisticsContinueLearning = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: ContinueLearningDto | null }> => {
+    return http.get('/student/statistics/continue-learning', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getStudentStatisticsTodoAssignments = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: TodoAssignmentItemDto[] }> => {
+    return http.get('/student/statistics/todo-assignments', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getStudentStatisticsGradeHistory = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: GradeHistoryItemDto[] }> => {
+    return http.get('/student/statistics/grade-history', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
+
+export const getStudentStatisticsGroupLearningSummary = (params?: StatisticsQueryParams): Promise<{ code: number; msg: string; data: GroupLearningSummaryDto }> => {
+    return http.get('/student/statistics/group-learning-summary', {
+        params: normalizeStatisticsQueryParams(params),
+    });
+};
 
 // ===== 教师端作业概览 =====
 
