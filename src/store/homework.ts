@@ -1062,7 +1062,7 @@ export class Homework {
         } as DraftResult;
     }
 
-    async fetchHomeworkList(courseId: string, mode?: RoleMode) {
+    async fetchHomeworkList(courseId: string, mode?: RoleMode, teachingGroupId?: string) {
         if (!courseId) {
             runInAction(() => {
                 this.list = [];
@@ -1078,7 +1078,10 @@ export class Homework {
 
         try {
             if (roleMode === 'teacher') {
-                const response: any = await listTeacherAssignments({ course_id: courseId });
+                const response: any = await listTeacherAssignments({
+                    course_id: courseId,
+                    teaching_group_id: teachingGroupId || undefined
+                });
                 const rawList = safeArray<any>(response?.data);
 
                 const mapped = rawList.map((item) => {

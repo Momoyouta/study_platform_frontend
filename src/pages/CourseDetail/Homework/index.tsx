@@ -23,9 +23,13 @@ const Homework = observer(({ courseId }: { courseId: string }) => {
 
     useEffect(() => {
         if (courseId) {
-            HomeworkStore.fetchHomeworkList(courseId, isTeacher ? 'teacher' : 'student');
+            HomeworkStore.fetchHomeworkList(
+                courseId, 
+                isTeacher ? 'teacher' : 'student',
+                isTeacher ? teachingGroupId : undefined
+            );
         }
-    }, [courseId, isTeacher]);
+    }, [courseId, isTeacher, teachingGroupId]);
 
     // 计算统计数据 (仅对学生有模拟进度意义，教师可直接展示)
     const totalCount = HomeworkStore.list.length;
