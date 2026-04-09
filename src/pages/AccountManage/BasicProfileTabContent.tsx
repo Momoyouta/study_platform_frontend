@@ -174,9 +174,19 @@ const BasicProfileTabContent = observer(() => {
                     <span className="account-basic-value">{userStore.schoolName || '-'}</span>
                 </div>
                 <div className="account-basic-item">
+                    <span className="account-basic-label">学院</span>
+                    <span className="account-basic-value">{userStore.collegeName || '-'}</span>
+                </div>
+                <div className="account-basic-item">
                     <span className="account-basic-label">角色</span>
                     <span className="account-basic-value">{roleLabel}</span>
                 </div>
+                {userStore.role === ROLE_MAP.STUDENT && (
+                    <div className="account-basic-item">
+                        <span className="account-basic-label">年级</span>
+                        <span className="account-basic-value">{studentStore.grade || '-'}</span>
+                    </div>
+                )}
             </div>
 
             <Form form={form} layout="vertical" className="account-basic-editor">

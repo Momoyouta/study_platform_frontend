@@ -87,6 +87,8 @@ export class User {
     roles: Role[] = [];
     schoolName: string = '';
     schoolId: string = '';
+    collegeId: string = '';
+    collegeName: string = '';
 
     role: string | null = localStorage.getItem(ROLE_STORAGE_KEY);
     token: string | null = localStorage.getItem(BUSINESS_TOKEN_STORAGE_KEY);
@@ -136,6 +138,8 @@ export class User {
         this.roles = this.parseStorage<Role[]>(USER_ROLES_STORAGE_KEY) || [];
         this.schoolName = localStorage.getItem(SCHOOL_NAME_STORAGE_KEY) || '';
         this.schoolId = localStorage.getItem(SCHOOL_ID_STORAGE_KEY) || '';
+        this.collegeId = userStorage?.collegeId || userStorage?.college_id || '';
+        this.collegeName = userStorage?.collegeName || userStorage?.college_name || '';
         this.availableSchools = this.parseStorage<AuthSchoolOptionDto[]>(SCHOOL_OPTIONS_STORAGE_KEY) || [];
 
         const actorContext = this.parseStorage<StoredActorContext>(ACTOR_CONTEXT_STORAGE_KEY);
@@ -299,6 +303,8 @@ export class User {
         this.createTime = '';
         this.updateTime = '';
         this.status = null;
+        this.collegeId = '';
+        this.collegeName = '';
     }
 
     private clearBusinessSession() {
@@ -342,6 +348,8 @@ export class User {
         this.createTime = dto.create_time || '';
         this.updateTime = dto.update_time || '';
         this.status = dto.status ?? null;
+        this.collegeId = dto.college_id || dto.collegeId || '';
+        this.collegeName = dto.collegeName || (dto as any).college_name || '';
 
         localStorage.setItem(USER_INFO_STORAGE_KEY, JSON.stringify({
             userId: this.userId,
@@ -354,6 +362,8 @@ export class User {
             createTime: this.createTime,
             updateTime: this.updateTime,
             status: this.status,
+            collegeId: this.collegeId,
+            collegeName: this.collegeName,
         }));
     }
 
@@ -407,14 +417,39 @@ export class User {
     }
 
     private applyProfileFromLegacy(userProfile: CurrentUserProfile) {
-        this.setUserFromDto(userProfile.user || null);
+        const { studentInfo, teacherInfo } = this.resolveRoleProfiles(userProfile);
+        const userAny = userProfile.user as any;
+        const profileAny = userProfile as any;
+        const collegeId = userAny?.college_id
+            || userAny?.collegeId
+            || profileAny?.college_id
+            || profileAny?.collegeId
+            || teacherInfo?.college_id
+            || studentInfo?.college_id
+            || '';
+        const collegeName = userAny?.collegeName
+            || userAny?.college_name
+            || profileAny?.collegeName
+            || profileAny?.college_name
+            || teacherInfo?.collegeName
+            || (teacherInfo as any)?.college_name
+            || studentInfo?.collegeName
+            || (studentInfo as any)?.college_name
+            || '';
+
+        this.setUserFromDto(userProfile.user
+            ? {
+                ...userProfile.user,
+                college_id: collegeId,
+                collegeName,
+            }
+            : null);
         this.setRoles(userProfile.roles || []);
         this.setSchoolName(userProfile.school_name || '');
 
         const primaryRole = this.resolvePrimaryRole(userProfile);
         this.setRole(primaryRole);
 
-        const { studentInfo, teacherInfo } = this.resolveRoleProfiles(userProfile);
         const schoolId = teacherInfo?.school_id || studentInfo?.school_id || '';
         this.setSchoolId(schoolId);
         if (this.rootStore.CourseStore) {
@@ -493,6 +528,8 @@ export class User {
             create_time: this.createTime,
             update_time: this.updateTime,
             status: this.status ?? undefined,
+            college_id: userProfileAny.college_id || userProfileAny.collegeId || this.collegeId,
+            collegeName: userProfileAny.collegeName || userProfileAny.college_name || this.collegeName,
         });
         this.setRoles([]);
         this.setRole(primaryRole);

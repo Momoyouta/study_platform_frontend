@@ -25,6 +25,8 @@ export type PendingBaseUserInfoDto = {
     userId: string;
     userRoles?: string[];
     userName?: string;
+    collegeId?: string;
+    collegeName?: string;
 };
 
 export type CurrentUserInfoDto = {
@@ -38,6 +40,10 @@ export type CurrentUserInfoDto = {
     create_time?: string;
     update_time?: string;
     status?: number;
+    college_id?: string;
+    college_name?: string;
+    collegeId?: string;
+    collegeName?: string;
 };
 
 export type CurrentTeacherInfoDto = {
@@ -47,6 +53,9 @@ export type CurrentTeacherInfoDto = {
     user_id?: string;
     school_id?: string;
     school_name?: string;
+    college_id?: string;
+    college_name?: string;
+    collegeName?: string;
 };
 
 export type CurrentStudentInfoDto = {
@@ -57,6 +66,10 @@ export type CurrentStudentInfoDto = {
     user_id?: string;
     school_id?: string;
     school_name?: string;
+    college_id?: string;
+    college_name?: string;
+    collegeName?: string;
+    grade?: string;
 };
 
 export type CurrentRoleInfoDto = {
@@ -71,6 +84,10 @@ export type CurrentUserProfile = {
     teacherInfo?: CurrentTeacherInfoDto | null;
     studentInfo?: CurrentStudentInfoDto | null;
     school_name: string;
+    college_id?: string;
+    college_name?: string;
+    collegeId?: string;
+    collegeName?: string;
 };
 
 export type BusinessUserProfile = {

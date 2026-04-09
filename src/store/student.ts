@@ -18,6 +18,12 @@ export class Student {
     schoolId: string = '';
     // 学校名称
     schoolName: string = '';
+    // 学院 ID
+    collegeId: string = '';
+    // 学院名称
+    collegeName: string = '';
+    // 年级
+    grade: string = '';
 
     // 初始化响应式能力并从本地缓存恢复数据
     constructor() {
@@ -46,6 +52,9 @@ export class Student {
             this.college = profile.college || '';
             this.schoolId = profile.schoolId || profile.school_id || '';
             this.schoolName = profile.schoolName || profile.school_name || '';
+            this.collegeId = profile.collegeId || profile.college_id || '';
+            this.collegeName = profile.collegeName || profile.college_name || '';
+            this.grade = profile.grade || '';
         } catch (_error) {
             this.clearFields();
             localStorage.removeItem(STUDENT_INFO_STORAGE_KEY);
@@ -60,6 +69,9 @@ export class Student {
         this.college = '';
         this.schoolId = '';
         this.schoolName = '';
+        this.collegeId = '';
+        this.collegeName = '';
+        this.grade = '';
     }
 
     // 将后端 DTO（snake_case）映射为 store 驼峰字段并持久化
@@ -75,6 +87,9 @@ export class Student {
         this.college = dto.college || '';
         this.schoolId = dto.school_id || '';
         this.schoolName = dto.school_name || '';
+        this.collegeId = dto.college_id || '';
+        this.collegeName = dto.collegeName || '';
+        this.grade = dto.grade || '';
 
         localStorage.setItem(STUDENT_INFO_STORAGE_KEY, JSON.stringify({
             studentId: this.studentId,
@@ -83,6 +98,9 @@ export class Student {
             college: this.college,
             schoolId: this.schoolId,
             schoolName: this.schoolName,
+            collegeId: this.collegeId,
+            collegeName: this.collegeName,
+            grade: this.grade,
         }));
     }
 
